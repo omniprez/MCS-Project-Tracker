@@ -35,7 +35,9 @@ const formSchema = insertProjectSchema.extend({
   // Additional client-side validation
   email: z.string().email(),
   phone: z.string().min(10, "Phone number must be at least 10 characters"),
-  bandwidth: z.number().min(1, "Bandwidth must be at least 1 Mbps")
+  bandwidth: z.number().min(1, "Bandwidth must be at least 1 Mbps"),
+  requirements: z.string().optional(),
+  projectId: z.string().optional() // Let the server generate this
 });
 
 export default function CreateProjectModal({ isOpen, onClose }: CreateProjectModalProps) {
@@ -66,10 +68,19 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
 
   const createProjectMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
-      const response = await apiRequest('/api/projects', 'POST', data);
-      return response.json();
+      console.log("Submitting project data:", data);
+      try {
+        const response = await apiRequest('/api/projects', 'POST', data);
+        const responseData = await response.json();
+        console.log("Server response:", responseData);
+        return responseData;
+      } catch (error) {
+        console.error("API request error:", error);
+        throw error;
+      }
     },
-    onSuccess: () => {
+    onSuccess: (data) => {
+      console.log("Mutation succeeded with data:", data);
       toast({
         title: "Project created",
         description: "The project has been created successfully",
@@ -80,6 +91,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
       onClose();
     },
     onError: (error) => {
+      console.error("Mutation error:", error);
       toast({
         title: "Error",
         description: `Failed to create project: ${error.message}`,
@@ -89,6 +101,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
   });
 
   const onSubmit = (values: z.infer<typeof formSchema>) => {
+    console.log("Form submitted with values:", values);
     createProjectMutation.mutate(values);
   };
 
