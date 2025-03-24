@@ -110,7 +110,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-md md:max-w-2xl lg:max-w-3xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-md md:max-w-lg lg:max-w-xl max-h-[70vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-medium leading-6 bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent">
             Create New Project
@@ -186,7 +186,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                     <FormItem className="md:col-span-2">
                       <FormLabel>Installation Address</FormLabel>
                       <FormControl>
-                        <Textarea rows={2} {...field} />
+                        <Textarea className="max-h-16" rows={1} {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -250,7 +250,8 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                       <FormLabel>Service Requirements</FormLabel>
                       <FormControl>
                         <Textarea 
-                          rows={3} 
+                          className="max-h-20"
+                          rows={2} 
                           {...field} 
                           value={field.value || ''}
                         />

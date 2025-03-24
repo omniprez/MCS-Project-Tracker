@@ -328,13 +328,13 @@ export default function ProjectCard({ project }: ProjectCardProps) {
       
       {/* Update Project Dialog */}
       <Dialog open={showUpdateDialog} onOpenChange={setShowUpdateDialog}>
-        <DialogContent className="sm:max-w-[500px]">
+        <DialogContent className="sm:max-w-[450px] max-h-[70vh] overflow-y-auto">
           <DialogHeader>
             <DialogTitle>Update Project</DialogTitle>
           </DialogHeader>
           <div className="py-4">
             <Form {...updateForm}>
-              <form onSubmit={updateForm.handleSubmit(onUpdateSubmit)} className="space-y-6">
+              <form onSubmit={updateForm.handleSubmit(onUpdateSubmit)} className="space-y-4">
                 <FormField
                   control={updateForm.control}
                   name="customerName"
@@ -434,7 +434,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                       <FormControl>
                         <Textarea 
                           placeholder="Project requirements"
-                          className="min-h-[100px]" 
+                          className="max-h-[80px]" 
+                          rows={2}
                           {...field} 
                           value={field.value || ""}
                         />
