@@ -19,11 +19,12 @@ export default function ProjectList({
   const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [activeTab, setActiveTab] = useState<string>("active");
 
-  const { data: projects = [], isLoading, refetch } = useQuery<Project[]>({
+  const { data: projects = [], isLoading } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
     refetchOnWindowFocus: true,
     refetchOnMount: true,
-    refetchInterval: 5000, // Refetch every 5 seconds
+    // Remove refetchInterval to avoid maximum update depth error
+    staleTime: 30000, // Consider data fresh for 30 seconds to reduce unnecessary fetches
   });
 
   useEffect(() => {
