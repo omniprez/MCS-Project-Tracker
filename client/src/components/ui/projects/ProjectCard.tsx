@@ -1,7 +1,7 @@
 import { Project, ProjectStage, ServiceType } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Edit, PaperclipIcon, Wifi, Network, ArrowRight, AlertCircle } from "lucide-react";
+import { Edit, PaperclipIcon, Wifi, Network, ArrowRight, AlertCircle, FileText, File, Download } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
@@ -33,8 +33,13 @@ interface ProjectCardProps {
 
 export default function ProjectCard({ project }: ProjectCardProps) {
   const [showDocuments, setShowDocuments] = useState(false);
-  
-  const { data: teamMembers } = useQuery({
+  const [showAdvanceStageDialog, setShowAdvanceStageDialog] = useState(false);
+  const [showUpdateDialog, setShowUpdateDialog] = useState(false);
+  const [stageNotes, setStageNotes] = useState("");
+  const { toast } = useToast();
+  const queryClient = useQueryClient();
+
+  const { data: teamMembers } = useQuery<any[]>({
     queryKey: ['/api/team-members'],
   });
   
@@ -43,6 +48,46 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   const formattedDate = format(new Date(project.createdAt), "MMM dd, yyyy");
   
   const assignedTeamMember = teamMembers?.find(tm => tm.id === project.assignedTo);
+  
+  // Get the next stage
+  const nextStage = project.currentStage < ProjectStage.Handover 
+    ? project.currentStage + 1 
+    : null;
+  
+  const nextStageInfo = nextStage ? getStageInfo(nextStage) : null;
+  
+  // Advance stage mutation
+  const advanceStageMutation = useMutation({
+    mutationFn: async () => {
+      const response = await apiRequest(
+        `/api/projects/${project.id}/stage`, 
+        'POST', 
+        {
+          stage: nextStage,
+          notes: stageNotes || `Advanced to ${nextStageInfo?.label}`,
+          changedBy: project.assignedTo
+        }
+      );
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Project updated",
+        description: `Project has been advanced to ${nextStageInfo?.label}`,
+      });
+      queryClient.invalidateQueries({ queryKey: ['/api/projects'] });
+      queryClient.invalidateQueries({ queryKey: ['/api/dashboard/stats'] });
+      setShowAdvanceStageDialog(false);
+      setStageNotes("");
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to advance project stage: ${error.message}`,
+        variant: "destructive",
+      });
+    }
+  });
   
   return (
     <Card className="overflow-hidden bg-white shadow sm:rounded-md">
@@ -125,9 +170,21 @@ export default function ProjectCard({ project }: ProjectCardProps) {
             >
               <PaperclipIcon className="mr-1 h-4 w-4" /> Documents
             </Button>
-            <Button size="sm">
+            <Button 
+              size="sm"
+              variant="outline"
+              onClick={() => setShowUpdateDialog(true)}
+            >
               <Edit className="mr-1 h-4 w-4" /> Update
             </Button>
+            {nextStage && (
+              <Button 
+                size="sm"
+                onClick={() => setShowAdvanceStageDialog(true)}
+              >
+                <ArrowRight className="mr-1 h-4 w-4" /> {nextStageInfo?.label}
+              </Button>
+            )}
           </div>
         </div>
       </div>
