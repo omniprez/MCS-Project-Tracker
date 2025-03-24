@@ -34,6 +34,8 @@ export default function Sidebar() {
   const [isDashboardActive] = useRoute("/");
   const [isProjectsActive] = useRoute("/projects");
   const [isTeamMembersActive] = useRoute("/team-members");
+  const [isReportsActive] = useRoute("/reports");
+  const [isSettingsActive] = useRoute("/settings");
   
   return (
     <div className="hidden md:flex md:flex-shrink-0">
@@ -65,14 +67,16 @@ export default function Sidebar() {
               Team Members
             </NavItem>
             <NavItem 
-              href="#" 
+              href="/reports" 
               icon={<FileText className="mr-3 h-5 w-5" />}
+              isActive={isReportsActive}
             >
               Reports
             </NavItem>
             <NavItem 
-              href="#" 
+              href="/settings" 
               icon={<Settings className="mr-3 h-5 w-5" />}
+              isActive={isSettingsActive}
             >
               Settings
             </NavItem>

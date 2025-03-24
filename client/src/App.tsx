@@ -6,6 +6,8 @@ import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
 import Projects from "@/pages/Projects";
 import TeamMembers from "@/pages/TeamMembers";
+import Reports from "@/pages/Reports";
+import Settings from "@/pages/Settings";
 import AppLayout from "@/components/layout/AppLayout";
 
 function Router() {
@@ -15,6 +17,8 @@ function Router() {
         <Route path="/" component={Dashboard} />
         <Route path="/projects" component={Projects} />
         <Route path="/team-members" component={TeamMembers} />
+        <Route path="/reports" component={Reports} />
+        <Route path="/settings" component={Settings} />
         <Route component={NotFound} />
       </Switch>
     </AppLayout>
