@@ -5,7 +5,8 @@ import {
   Users, 
   FileText, 
   Settings,
-  LogOut
+  LogOut,
+  Award
 } from "lucide-react";
 
 interface NavItemProps {
@@ -35,6 +36,7 @@ export default function Sidebar() {
   const [isProjectsActive] = useRoute("/projects");
   const [isTeamMembersActive] = useRoute("/team-members");
   const [isReportsActive] = useRoute("/reports");
+  const [isPerformanceActive] = useRoute("/performance");
   const [isSettingsActive] = useRoute("/settings");
   
   return (
@@ -72,6 +74,13 @@ export default function Sidebar() {
               isActive={isReportsActive}
             >
               Reports
+            </NavItem>
+            <NavItem 
+              href="/performance" 
+              icon={<Award className="mr-3 h-5 w-5" />}
+              isActive={isPerformanceActive}
+            >
+              Performance
             </NavItem>
             <NavItem 
               href="/settings" 
