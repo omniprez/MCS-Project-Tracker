@@ -66,7 +66,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
 
   const createProjectMutation = useMutation({
     mutationFn: async (data: z.infer<typeof formSchema>) => {
-      const response = await apiRequest('POST', '/api/projects', data);
+      const response = await apiRequest('/api/projects', 'POST', data);
       return response.json();
     },
     onSuccess: () => {
