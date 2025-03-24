@@ -194,6 +194,7 @@ async function seedDatabase() {
           description: "Conduct technical site survey and assess feasibility",
           assignedTo: teamMembersList.find(m => m.role === "Field Technician")?.id || teamMembersList[0].id,
           status: project.currentStage >= ProjectStage.Survey ? "completed" : "pending",
+          stage: ProjectStage.Survey,
           dueDate: new Date(new Date().setDate(new Date().getDate() - 15))
         },
         {
@@ -202,6 +203,7 @@ async function seedDatabase() {
           description: "Prepare detailed technical and commercial proposal",
           assignedTo: teamMembersList.find(m => m.role === "Sales Representative")?.id || teamMembersList[0].id,
           status: project.currentStage >= ProjectStage.Confirmation ? "completed" : "pending",
+          stage: ProjectStage.Confirmation,
           dueDate: new Date(new Date().setDate(new Date().getDate() - 10))
         },
         {
@@ -210,6 +212,7 @@ async function seedDatabase() {
           description: "Order and verify delivery of all required equipment",
           assignedTo: teamMembersList.find(m => m.role === "Project Manager")?.id || teamMembersList[0].id,
           status: project.currentStage >= ProjectStage.Installation ? "completed" : "pending",
+          stage: ProjectStage.Installation,
           dueDate: new Date(new Date().setDate(new Date().getDate() + 5))
         },
         {
