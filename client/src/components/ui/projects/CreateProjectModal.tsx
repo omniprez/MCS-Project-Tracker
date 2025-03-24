@@ -42,7 +42,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
-  const { data: teamMembers, isLoading: isLoadingTeamMembers } = useQuery({
+  const { data: teamMembers = [], isLoading: isLoadingTeamMembers } = useQuery<any[]>({
     queryKey: ['/api/team-members'],
   });
   
@@ -94,7 +94,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
 
   return (
     <Dialog open={isOpen} onOpenChange={onClose}>
-      <DialogContent className="max-w-3xl">
+      <DialogContent className="max-w-md md:max-w-2xl lg:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
           <DialogTitle className="text-lg font-medium leading-6 text-slate-900">
             Create New Project
@@ -106,12 +106,12 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
             {/* Customer Information Section */}
             <div>
               <h4 className="text-md font-medium text-slate-700">Customer Information</h4>
-              <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+              <div className="mt-4 grid grid-cols-1 gap-y-4 gap-x-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="customerName"
                   render={({ field }) => (
-                    <FormItem className="sm:col-span-3">
+                    <FormItem>
                       <FormLabel>Customer Name</FormLabel>
                       <FormControl>
                         <Input {...field} />
@@ -125,7 +125,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                   control={form.control}
                   name="contactPerson"
                   render={({ field }) => (
-                    <FormItem className="sm:col-span-3">
+                    <FormItem>
                       <FormLabel>Contact Person</FormLabel>
                       <FormControl>
                         <Input {...field} />
@@ -139,7 +139,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                   control={form.control}
                   name="email"
                   render={({ field }) => (
-                    <FormItem className="sm:col-span-3">
+                    <FormItem>
                       <FormLabel>Email</FormLabel>
                       <FormControl>
                         <Input type="email" {...field} />
@@ -153,7 +153,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                   control={form.control}
                   name="phone"
                   render={({ field }) => (
-                    <FormItem className="sm:col-span-3">
+                    <FormItem>
                       <FormLabel>Phone</FormLabel>
                       <FormControl>
                         <Input {...field} />
@@ -167,7 +167,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                   control={form.control}
                   name="address"
                   render={({ field }) => (
-                    <FormItem className="sm:col-span-6">
+                    <FormItem className="md:col-span-2">
                       <FormLabel>Installation Address</FormLabel>
                       <FormControl>
                         <Textarea rows={2} {...field} />
@@ -182,12 +182,12 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
             {/* Service Information */}
             <div>
               <h4 className="text-md font-medium text-slate-700">Service Information</h4>
-              <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+              <div className="mt-4 grid grid-cols-1 gap-y-4 gap-x-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="serviceType"
                   render={({ field }) => (
-                    <FormItem className="sm:col-span-3">
+                    <FormItem>
                       <FormLabel>Service Type</FormLabel>
                       <Select 
                         onValueChange={field.onChange} 
@@ -212,7 +212,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                   control={form.control}
                   name="bandwidth"
                   render={({ field }) => (
-                    <FormItem className="sm:col-span-3">
+                    <FormItem>
                       <FormLabel>Bandwidth (Mbps)</FormLabel>
                       <FormControl>
                         <Input 
@@ -230,10 +230,14 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                   control={form.control}
                   name="requirements"
                   render={({ field }) => (
-                    <FormItem className="sm:col-span-6">
+                    <FormItem className="md:col-span-2">
                       <FormLabel>Service Requirements</FormLabel>
                       <FormControl>
-                        <Textarea rows={3} {...field} />
+                        <Textarea 
+                          rows={3} 
+                          {...field} 
+                          value={field.value || ''}
+                        />
                       </FormControl>
                       <FormMessage />
                     </FormItem>
@@ -245,12 +249,12 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
             {/* Project Assignment */}
             <div>
               <h4 className="text-md font-medium text-slate-700">Project Assignment</h4>
-              <div className="mt-4 grid grid-cols-1 gap-y-6 gap-x-4 sm:grid-cols-6">
+              <div className="mt-4 grid grid-cols-1 gap-y-4 gap-x-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="assignedTo"
                   render={({ field }) => (
-                    <FormItem className="sm:col-span-3">
+                    <FormItem>
                       <FormLabel>Project Manager</FormLabel>
                       <Select 
                         onValueChange={(value) => field.onChange(parseInt(value))} 
@@ -263,7 +267,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                           </SelectTrigger>
                         </FormControl>
                         <SelectContent>
-                          {teamMembers?.map(member => (
+                          {Array.isArray(teamMembers) && teamMembers.map((member: any) => (
                             <SelectItem key={member.id} value={member.id.toString()}>
                               {member.name}
                             </SelectItem>
@@ -279,7 +283,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                   control={form.control}
                   name="expectedCompletion"
                   render={({ field }) => (
-                    <FormItem className="sm:col-span-3">
+                    <FormItem>
                       <FormLabel>Expected Completion</FormLabel>
                       <FormControl>
                         <Input type="date" {...field} />
