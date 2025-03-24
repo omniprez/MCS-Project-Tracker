@@ -694,7 +694,33 @@ export class DatabaseStorage implements IStorage {
   }
   
   async createProject(insertProject: InsertProject): Promise<Project> {
-    const [project] = await db.insert(projects).values(insertProject).returning();
+    const now = new Date();
+    
+    // Generate a unique project ID (format: P-YYYY-XXXX)
+    // First, get the current count of projects to use for the ID suffix
+    const projectCount = await db.select({ count: sql`count(*)` }).from(projects);
+    const count = Number(projectCount[0].count) + 1;
+    const projectIdStr = `P-${now.getFullYear()}-${String(count).padStart(4, '0')}`;
+    
+    console.log(`Generated project ID: ${projectIdStr}`);
+    
+    // Add the generated projectId to the project data
+    const projectData = {
+      ...insertProject,
+      projectId: projectIdStr
+    };
+    
+    // Insert the project with the generated ID
+    const [project] = await db.insert(projects).values(projectData).returning();
+    
+    // Create initial stage history entry
+    await this.createStageHistory({
+      projectId: project.id,
+      stage: ProjectStage.Requirements,
+      notes: "Project created",
+      changedBy: project.assignedTo
+    });
+    
     return project;
   }
   
