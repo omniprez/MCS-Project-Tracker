@@ -5,44 +5,44 @@ export function getStageInfo(stage: ProjectStage) {
     case ProjectStage.Requirements:
       return {
         label: "Requirements",
-        bgColor: "bg-blue-100",
-        textColor: "text-blue-800",
-        barColor: "bg-primary"
+        bgColor: "bg-indigo-100",
+        textColor: "text-indigo-700",
+        barColor: "bg-indigo-600"
       };
     case ProjectStage.Survey:
       return {
         label: "Survey",
         bgColor: "bg-violet-100",
-        textColor: "text-violet-800",
-        barColor: "bg-secondary"
+        textColor: "text-violet-700",
+        barColor: "bg-violet-600"
       };
     case ProjectStage.Confirmation:
       return {
         label: "Confirmation",
-        bgColor: "bg-yellow-100",
-        textColor: "text-yellow-800",
-        barColor: "bg-yellow-500"
+        bgColor: "bg-fuchsia-100",
+        textColor: "text-fuchsia-700",
+        barColor: "bg-fuchsia-600"
       };
     case ProjectStage.Installation:
       return {
         label: "Installation",
         bgColor: "bg-cyan-100",
-        textColor: "text-cyan-800",
-        barColor: "bg-accent"
+        textColor: "text-cyan-700",
+        barColor: "bg-cyan-600"
       };
     case ProjectStage.Handover:
       return {
         label: "Handover",
-        bgColor: "bg-green-100",
-        textColor: "text-green-800",
-        barColor: "bg-green-600"
+        bgColor: "bg-teal-100",
+        textColor: "text-teal-700",
+        barColor: "bg-teal-600"
       };
     default:
       return {
         label: "Unknown",
-        bgColor: "bg-gray-100",
-        textColor: "text-gray-800",
-        barColor: "bg-gray-500"
+        bgColor: "bg-slate-100",
+        textColor: "text-slate-700",
+        barColor: "bg-slate-600"
       };
   }
 }
