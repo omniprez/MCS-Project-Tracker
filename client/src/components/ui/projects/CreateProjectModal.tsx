@@ -118,11 +118,11 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
         </DialogHeader>
         
         <Form {...form}>
-          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
             {/* Customer Information Section */}
             <div>
               <h4 className="text-md font-medium bg-gradient-to-r from-indigo-500 to-cyan-600 bg-clip-text text-transparent">Customer Information</h4>
-              <div className="mt-4 grid grid-cols-1 gap-y-4 gap-x-4 md:grid-cols-2">
+              <div className="mt-3 grid grid-cols-1 gap-y-3 gap-x-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="customerName"
@@ -198,7 +198,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
             {/* Service Information */}
             <div>
               <h4 className="text-md font-medium bg-gradient-to-r from-indigo-500 to-cyan-600 bg-clip-text text-transparent">Service Information</h4>
-              <div className="mt-4 grid grid-cols-1 gap-y-4 gap-x-4 md:grid-cols-2">
+              <div className="mt-3 grid grid-cols-1 gap-y-3 gap-x-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="serviceType"
@@ -266,7 +266,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
             {/* Project Assignment */}
             <div>
               <h4 className="text-md font-medium bg-gradient-to-r from-indigo-500 to-cyan-600 bg-clip-text text-transparent">Project Assignment</h4>
-              <div className="mt-4 grid grid-cols-1 gap-y-4 gap-x-4 md:grid-cols-2">
+              <div className="mt-3 grid grid-cols-1 gap-y-3 gap-x-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
                   name="assignedTo"

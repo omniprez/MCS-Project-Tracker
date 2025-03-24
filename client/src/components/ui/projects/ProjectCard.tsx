@@ -332,9 +332,9 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           <DialogHeader>
             <DialogTitle>Update Project</DialogTitle>
           </DialogHeader>
-          <div className="py-4">
+          <div className="py-2">
             <Form {...updateForm}>
-              <form onSubmit={updateForm.handleSubmit(onUpdateSubmit)} className="space-y-4">
+              <form onSubmit={updateForm.handleSubmit(onUpdateSubmit)} className="space-y-3">
                 <FormField
                   control={updateForm.control}
                   name="customerName"
