@@ -1,11 +1,31 @@
 import { Project, ProjectStage, ServiceType } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Edit, PaperclipIcon, Wifi, Network } from "lucide-react";
+import { Edit, PaperclipIcon, Wifi, Network, ArrowRight, AlertCircle } from "lucide-react";
 import { useState } from "react";
 import { format } from "date-fns";
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { getStageInfo, getStagePercentage } from "@/lib/stageUtils";
+import { apiRequest } from "@/lib/queryClient";
+import { 
+  Dialog, 
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import { 
+  Form, 
+  FormField, 
+  FormItem, 
+  FormLabel, 
+  FormControl,
+  FormMessage 
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
+import { useForm } from "react-hook-form";
+import { useToast } from "@/hooks/use-toast";
 
 interface ProjectCardProps {
   project: Project;
