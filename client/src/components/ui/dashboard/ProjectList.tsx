@@ -2,7 +2,7 @@ import { useQuery } from "@tanstack/react-query";
 import ProjectCard from "@/components/ui/projects/ProjectCard";
 import { Project } from "@shared/schema";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { useState, useEffect } from "react";
+import { useState, useMemo } from "react";
 import { Skeleton } from "@/components/ui/skeleton";
 
 interface ProjectListProps {
@@ -16,19 +16,18 @@ export default function ProjectList({
   serviceTypeFilter,
   stageFilter
 }: ProjectListProps) {
-  const [filteredProjects, setFilteredProjects] = useState<Project[]>([]);
   const [activeTab, setActiveTab] = useState<string>("active");
 
   const { data: projects = [], isLoading } = useQuery<Project[]>({
     queryKey: ['/api/projects'],
     refetchOnWindowFocus: true,
     refetchOnMount: true,
-    // Remove refetchInterval to avoid maximum update depth error
-    staleTime: 30000, // Consider data fresh for 30 seconds to reduce unnecessary fetches
+    staleTime: 30000, // Consider data fresh for 30 seconds
   });
 
-  useEffect(() => {
-    if (!projects) return;
+  // Use useMemo instead of useState + useEffect to avoid the maximum update depth error
+  const filteredProjects = useMemo(() => {
+    if (!projects?.length) return [];
 
     let filtered = [...projects];
 
@@ -57,7 +56,7 @@ export default function ProjectList({
       filtered = filtered.filter(project => project.currentStage === Number(stageFilter));
     }
 
-    setFilteredProjects(filtered);
+    return filtered;
   }, [projects, searchQuery, serviceTypeFilter, stageFilter, activeTab]);
 
   const renderSkeletons = () => (

@@ -275,6 +275,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               {nextStage && (
                 <Button 
                   size="sm"
+                  className="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700"
                   onClick={() => setShowAdvanceStageDialog(true)}
                 >
                   <ArrowRight className="mr-1 h-4 w-4" /> {nextStageInfo?.label}
@@ -315,6 +316,7 @@ export default function ProjectCard({ project }: ProjectCardProps) {
               Cancel
             </Button>
             <Button 
+              className="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700"
               onClick={() => advanceStageMutation.mutate()}
               disabled={advanceStageMutation.isPending}
             >
@@ -446,7 +448,11 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                   <Button variant="outline" onClick={() => setShowUpdateDialog(false)} type="button">
                     Cancel
                   </Button>
-                  <Button type="submit" disabled={updateProjectMutation.isPending}>
+                  <Button 
+                    type="submit" 
+                    disabled={updateProjectMutation.isPending}
+                    className="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700"
+                  >
                     {updateProjectMutation.isPending ? "Updating..." : "Update Project"}
                   </Button>
                 </DialogFooter>
