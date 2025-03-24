@@ -45,10 +45,9 @@ export async function registerRoutes(app: Express): Promise<Server> {
     try {
       console.log("Received project creation request with data:", req.body);
       
-      // Make projectId optional in the schema for client submissions
-      const projectData = insertProjectSchema
-        .omit({ projectId: true })
-        .parse(req.body);
+      // Parse project data without requiring projectId
+      const { projectId, ...otherData } = req.body;
+      const projectData = otherData;
       
       console.log("Parsed project data:", projectData);
       const project = await storage.createProject(projectData);

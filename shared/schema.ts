@@ -108,6 +108,7 @@ export const insertProjectSchema = createInsertSchema(projects)
   .extend({
     serviceType: z.enum([ServiceType.Fiber, ServiceType.Wireless]),
     currentStage: z.number().min(1).max(5),
+    projectId: z.string().optional(), // Make projectId optional so server can generate it
   });
 
 export const insertTeamMemberSchema = createInsertSchema(teamMembers)

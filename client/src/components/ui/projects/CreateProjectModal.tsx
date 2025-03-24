@@ -70,7 +70,10 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
     mutationFn: async (data: z.infer<typeof formSchema>) => {
       console.log("Submitting project data:", data);
       try {
-        const response = await apiRequest('/api/projects', 'POST', data);
+        // Filter out the projectId since we don't want it in the request
+        const { projectId, ...projectData } = data;
+        
+        const response = await apiRequest('/api/projects', 'POST', projectData);
         const responseData = await response.json();
         console.log("Server response:", responseData);
         return responseData;
