@@ -20,6 +20,8 @@ import {
   ProjectStage,
   ServiceType
 } from "@shared/schema";
+import { db } from "./db";
+import { eq, or, sql } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -651,4 +653,171 @@ export class MemStorage implements IStorage {
   }
 }
 
-export const storage = new MemStorage();
+// DatabaseStorage implementation for persistent data storage
+export class DatabaseStorage implements IStorage {
+  // User methods
+  async getUser(id: number): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.id, id));
+    return user || undefined;
+  }
+
+  async getUserByUsername(username: string): Promise<User | undefined> {
+    const [user] = await db.select().from(users).where(eq(users.username, username));
+    return user || undefined;
+  }
+
+  async createUser(insertUser: InsertUser): Promise<User> {
+    const [user] = await db.insert(users).values(insertUser).returning();
+    return user;
+  }
+  
+  // Project methods
+  async getAllProjects(): Promise<Project[]> {
+    return await db.select().from(projects);
+  }
+  
+  async getProjectById(id: number): Promise<Project | undefined> {
+    const [project] = await db.select().from(projects).where(eq(projects.id, id));
+    return project || undefined;
+  }
+  
+  async getProjectsByStatus(isCompleted: boolean): Promise<Project[]> {
+    return await db.select().from(projects).where(eq(projects.isCompleted, isCompleted));
+  }
+  
+  async getProjectsByServiceType(serviceType: ServiceType): Promise<Project[]> {
+    return await db.select().from(projects).where(eq(projects.serviceType, serviceType));
+  }
+  
+  async getProjectsByStage(stage: ProjectStage): Promise<Project[]> {
+    return await db.select().from(projects).where(eq(projects.currentStage, stage));
+  }
+  
+  async createProject(insertProject: InsertProject): Promise<Project> {
+    const [project] = await db.insert(projects).values(insertProject).returning();
+    return project;
+  }
+  
+  async updateProject(id: number, projectUpdate: Partial<Project>): Promise<Project | undefined> {
+    const [updatedProject] = await db
+      .update(projects)
+      .set(projectUpdate)
+      .where(eq(projects.id, id))
+      .returning();
+    return updatedProject || undefined;
+  }
+  
+  async updateProjectStage(id: number, stage: ProjectStage): Promise<Project | undefined> {
+    const [updatedProject] = await db
+      .update(projects)
+      .set({ currentStage: stage })
+      .where(eq(projects.id, id))
+      .returning();
+    return updatedProject || undefined;
+  }
+  
+  // Team member methods
+  async getAllTeamMembers(): Promise<TeamMember[]> {
+    return await db.select().from(teamMembers);
+  }
+  
+  async getTeamMemberById(id: number): Promise<TeamMember | undefined> {
+    const [teamMember] = await db.select().from(teamMembers).where(eq(teamMembers.id, id));
+    return teamMember || undefined;
+  }
+  
+  async createTeamMember(insertTeamMember: InsertTeamMember): Promise<TeamMember> {
+    const [teamMember] = await db.insert(teamMembers).values(insertTeamMember).returning();
+    return teamMember;
+  }
+  
+  // Document methods
+  async getDocumentsByProjectId(projectId: number): Promise<ProjectDocument[]> {
+    return await db.select().from(projectDocuments).where(eq(projectDocuments.projectId, projectId));
+  }
+  
+  async createDocument(insertDocument: InsertProjectDocument): Promise<ProjectDocument> {
+    const [document] = await db.insert(projectDocuments).values(insertDocument).returning();
+    return document;
+  }
+  
+  // Stage history methods
+  async getStageHistoryByProjectId(projectId: number): Promise<ProjectStageHistory[]> {
+    return await db
+      .select()
+      .from(projectStageHistory)
+      .where(eq(projectStageHistory.projectId, projectId))
+      .orderBy(projectStageHistory.timestamp);
+  }
+  
+  async createStageHistory(insertStageHistory: InsertProjectStageHistory): Promise<ProjectStageHistory> {
+    const [stageHistory] = await db
+      .insert(projectStageHistory)
+      .values(insertStageHistory)
+      .returning();
+    return stageHistory;
+  }
+  
+  // Task methods
+  async getTasksByProjectId(projectId: number): Promise<Task[]> {
+    return await db.select().from(tasks).where(eq(tasks.projectId, projectId));
+  }
+  
+  async createTask(insertTask: InsertTask): Promise<Task> {
+    const [task] = await db.insert(tasks).values(insertTask).returning();
+    return task;
+  }
+  
+  async updateTask(id: number, taskUpdate: Partial<Task>): Promise<Task | undefined> {
+    const [updatedTask] = await db
+      .update(tasks)
+      .set(taskUpdate)
+      .where(eq(tasks.id, id))
+      .returning();
+    return updatedTask || undefined;
+  }
+  
+  // Dashboard stats
+  async getProjectCountByStage(): Promise<Record<ProjectStage, number>> {
+    const result: Record<ProjectStage, number> = {
+      [ProjectStage.Requirements]: 0,
+      [ProjectStage.Survey]: 0,
+      [ProjectStage.Confirmation]: 0,
+      [ProjectStage.Installation]: 0,
+      [ProjectStage.Handover]: 0,
+    };
+    
+    const counts = await db
+      .select({
+        stage: projects.currentStage,
+        count: sql`count(*)::int`,
+      })
+      .from(projects)
+      .groupBy(projects.currentStage);
+    
+    counts.forEach((item) => {
+      result[item.stage] = item.count;
+    });
+    
+    return result;
+  }
+  
+  async searchProjects(query: string): Promise<Project[]> {
+    const lowercaseQuery = `%${query.toLowerCase()}%`;
+    
+    return await db
+      .select()
+      .from(projects)
+      .where(
+        or(
+          sql`lower(${projects.customerName}) like ${lowercaseQuery}`,
+          sql`lower(${projects.contactPerson}) like ${lowercaseQuery}`,
+          sql`lower(${projects.projectId}) like ${lowercaseQuery}`,
+          sql`lower(${projects.address}) like ${lowercaseQuery}`
+        )
+      );
+  }
+}
+
+// Switch to database storage
+export const storage = new DatabaseStorage();

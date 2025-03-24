@@ -5,6 +5,7 @@ import {
   insertProjectSchema, 
   insertTaskSchema, 
   insertProjectStageHistorySchema,
+  insertTeamMemberSchema,
   ProjectStage,
   ServiceType
 } from "@shared/schema";
@@ -174,6 +175,36 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.json(teamMembers);
     } catch (error) {
       res.status(500).json({ message: "Error fetching team members" });
+    }
+  });
+  
+  // Create team member
+  app.post("/api/team-members", async (req: Request, res: Response) => {
+    try {
+      const teamMemberData = insertTeamMemberSchema.parse(req.body);
+      const teamMember = await storage.createTeamMember(teamMemberData);
+      res.status(201).json(teamMember);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid team member data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Error creating team member" });
+    }
+  });
+  
+  // Get team member by ID
+  app.get("/api/team-members/:id", async (req: Request, res: Response) => {
+    try {
+      const id = parseInt(req.params.id);
+      const teamMember = await storage.getTeamMemberById(id);
+      
+      if (!teamMember) {
+        return res.status(404).json({ message: "Team member not found" });
+      }
+      
+      res.json(teamMember);
+    } catch (error) {
+      res.status(500).json({ message: "Error fetching team member" });
     }
   });
   
