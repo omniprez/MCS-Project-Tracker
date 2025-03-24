@@ -18,14 +18,14 @@ interface NavItemProps {
 function NavItem({ href, icon, children, isActive }: NavItemProps) {
   return (
     <Link href={href}>
-      <a className={`flex items-center px-4 py-2 text-sm font-medium rounded-md ${
+      <div className={`flex items-center px-4 py-2 text-sm font-medium rounded-md cursor-pointer ${
         isActive 
           ? "bg-primary text-white" 
           : "text-slate-700 hover:bg-slate-100"
       }`}>
         {icon}
         {children}
-      </a>
+      </div>
     </Link>
   );
 }
@@ -33,6 +33,7 @@ function NavItem({ href, icon, children, isActive }: NavItemProps) {
 export default function Sidebar() {
   const [isDashboardActive] = useRoute("/");
   const [isProjectsActive] = useRoute("/projects");
+  const [isTeamMembersActive] = useRoute("/team-members");
   
   return (
     <div className="hidden md:flex md:flex-shrink-0">
@@ -57,8 +58,9 @@ export default function Sidebar() {
               Projects
             </NavItem>
             <NavItem 
-              href="#" 
+              href="/team-members" 
               icon={<Users className="mr-3 h-5 w-5" />}
+              isActive={isTeamMembersActive}
             >
               Team Members
             </NavItem>
