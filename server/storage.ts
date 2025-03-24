@@ -92,6 +92,9 @@ export class MemStorage implements IStorage {
     
     // Initialize with some team members
     this.initializeTeamMembers();
+    
+    // Initialize with sample projects
+    this.initializeSampleProjects();
   }
   
   private initializeTeamMembers() {
@@ -105,6 +108,324 @@ export class MemStorage implements IStorage {
     
     defaultTeamMembers.forEach(member => {
       this.createTeamMember(member);
+    });
+  }
+  
+  private initializeSampleProjects() {
+    const sampleProjects: InsertProject[] = [
+      {
+        projectId: "P-2025-0001",
+        customerName: "TechCorp Solutions",
+        contactPerson: "John Anderson",
+        email: "john@techcorp.com",
+        phone: "555-789-1234",
+        address: "123 Innovation Way, Technology Park, CA 94025",
+        serviceType: ServiceType.Fiber,
+        bandwidth: 1000,
+        requirements: "Fiber connection for new office building with 250 employees. Redundant connection required. 24/7 support with 99.99% SLA.",
+        assignedTo: 1,
+        expectedCompletion: "2025-05-15",
+        currentStage: ProjectStage.Requirements,
+        isCompleted: false
+      },
+      {
+        projectId: "P-2025-0002",
+        customerName: "Global Financial Group",
+        contactPerson: "Lisa Wong",
+        email: "lwong@gfg.com",
+        phone: "555-456-7890",
+        address: "888 Money Avenue, Financial District, NY 10004",
+        serviceType: ServiceType.Fiber,
+        bandwidth: 10000,
+        requirements: "Ultra-low latency connection between main office and data center. Dedicated fiber path with automatic failover.",
+        assignedTo: 2,
+        expectedCompletion: "2025-06-20",
+        currentStage: ProjectStage.Survey,
+        isCompleted: false
+      },
+      {
+        projectId: "P-2025-0003",
+        customerName: "Mountain View Medical Center",
+        contactPerson: "Dr. Sarah Patel",
+        email: "spatel@mvmc.org",
+        phone: "555-222-3333",
+        address: "456 Healing Boulevard, Mountain View, CA 94040",
+        serviceType: ServiceType.Fiber,
+        bandwidth: 500,
+        requirements: "HIPAA-compliant network connection for new wing of hospital. Secure VPN access for remote staff.",
+        assignedTo: 1,
+        expectedCompletion: "2025-04-30",
+        currentStage: ProjectStage.Confirmation,
+        isCompleted: false
+      },
+      {
+        projectId: "P-2025-0004",
+        customerName: "Hilltop Vineyards",
+        contactPerson: "Robert James",
+        email: "robert@hilltopvineyards.com",
+        phone: "555-987-6543",
+        address: "1200 Vineyard Road, Napa Valley, CA 94558",
+        serviceType: ServiceType.Wireless,
+        bandwidth: 200,
+        requirements: "Point-to-point wireless connection between main building and processing facility (2.5km apart). Weather-resistant equipment needed.",
+        assignedTo: 3,
+        expectedCompletion: "2025-03-15",
+        currentStage: ProjectStage.Installation,
+        isCompleted: false
+      },
+      {
+        projectId: "P-2025-0005",
+        customerName: "City College of San Francisco",
+        contactPerson: "Maria Rodriguez",
+        email: "mrodriguez@ccsf.edu",
+        phone: "555-111-2222",
+        address: "50 Education Drive, San Francisco, CA 94112",
+        serviceType: ServiceType.Fiber,
+        bandwidth: 2000,
+        requirements: "Campus-wide fiber deployment connecting 5 buildings. Separate VLANs for staff, students, and administration.",
+        assignedTo: 2,
+        expectedCompletion: "2025-02-28",
+        currentStage: ProjectStage.Handover,
+        isCompleted: true
+      },
+      {
+        projectId: "P-2025-0006",
+        customerName: "Sunrise Apartments",
+        contactPerson: "David Lee",
+        email: "dlee@sunriseapts.com",
+        phone: "555-333-4444",
+        address: "789 Residential Lane, Sunshine City, FL 33101",
+        serviceType: ServiceType.Fiber,
+        bandwidth: 1500,
+        requirements: "Fiber to the building with individual connections to 120 apartments. Managed WiFi in common areas.",
+        assignedTo: 1,
+        expectedCompletion: "2025-07-10",
+        currentStage: ProjectStage.Survey,
+        isCompleted: false
+      },
+      {
+        projectId: "P-2025-0007",
+        customerName: "Remote Mountain Resort",
+        contactPerson: "Jennifer Smith",
+        email: "jsmith@mountainresort.com",
+        phone: "555-444-5555",
+        address: "1 Resort Way, Rocky Mountains, CO 80517",
+        serviceType: ServiceType.Wireless,
+        bandwidth: 300,
+        requirements: "Wireless connectivity across 500-acre property. Mesh network with multiple access points. Must withstand extreme weather conditions.",
+        assignedTo: 3,
+        expectedCompletion: "2025-08-30",
+        currentStage: ProjectStage.Requirements,
+        isCompleted: false
+      }
+    ];
+    
+    // Create projects
+    sampleProjects.forEach(project => {
+      // Generate unique ID
+      const id = this.projectId++;
+      
+      // Set creation and update dates
+      // Create projects with staggered dates to simulate real-world progression
+      const baseDate = new Date();
+      baseDate.setDate(baseDate.getDate() - (Math.random() * 30)); // Random date in the last 30 days
+      
+      const projectData: Project = {
+        ...project,
+        id,
+        createdAt: new Date(baseDate),
+        updatedAt: new Date(baseDate)
+      };
+      
+      // Store the project
+      this.projects.set(id, projectData);
+      
+      // Create initial stage history
+      this.createStageHistory({
+        projectId: id,
+        stage: ProjectStage.Requirements,
+        notes: "Project initialized with requirements",
+        changedBy: project.assignedTo
+      });
+      
+      // Add sample documents to each project
+      this.createDocument({
+        projectId: id,
+        name: "Requirements Document",
+        type: "pdf",
+        url: "https://example.com/documents/requirements.pdf"
+      });
+      
+      // Add additional history if project has progressed beyond initial stage
+      if (project.currentStage >= ProjectStage.Survey) {
+        const surveyDate = new Date(baseDate);
+        surveyDate.setDate(surveyDate.getDate() + 3); // 3 days after creation
+        
+        this.createStageHistory({
+          projectId: id,
+          stage: ProjectStage.Survey,
+          notes: "Site survey completed. Location verified for installation.",
+          changedBy: project.assignedTo,
+          timestamp: surveyDate
+        } as any); // Using any to bypass TypeScript error about timestamp
+        
+        // Add survey document
+        this.createDocument({
+          projectId: id,
+          name: "Site Survey Report",
+          type: "pdf",
+          url: "https://example.com/documents/survey_report.pdf"
+        });
+      }
+      
+      if (project.currentStage >= ProjectStage.Confirmation) {
+        const confirmDate = new Date(baseDate);
+        confirmDate.setDate(confirmDate.getDate() + 7); // 7 days after creation
+        
+        this.createStageHistory({
+          projectId: id,
+          stage: ProjectStage.Confirmation,
+          notes: "Customer confirmed project scope and costs.",
+          changedBy: project.assignedTo,
+          timestamp: confirmDate
+        } as any);
+        
+        // Add confirmation documents
+        this.createDocument({
+          projectId: id,
+          name: "Service Agreement",
+          type: "pdf",
+          url: "https://example.com/documents/service_agreement.pdf"
+        });
+        
+        this.createDocument({
+          projectId: id,
+          name: "Financial Approval",
+          type: "pdf",
+          url: "https://example.com/documents/financial_approval.pdf"
+        });
+      }
+      
+      if (project.currentStage >= ProjectStage.Installation) {
+        const installDate = new Date(baseDate);
+        installDate.setDate(installDate.getDate() + 14); // 14 days after creation
+        
+        this.createStageHistory({
+          projectId: id,
+          stage: ProjectStage.Installation,
+          notes: "Equipment installed and initial testing completed.",
+          changedBy: project.assignedTo,
+          timestamp: installDate
+        } as any);
+        
+        // Add installation documents
+        this.createDocument({
+          projectId: id,
+          name: "Installation Photos",
+          type: "zip",
+          url: "https://example.com/documents/installation_photos.zip"
+        });
+        
+        this.createDocument({
+          projectId: id,
+          name: "Network Topology",
+          type: "pdf",
+          url: "https://example.com/documents/network_topology.pdf"
+        });
+      }
+      
+      if (project.currentStage === ProjectStage.Handover) {
+        const handoverDate = new Date(baseDate);
+        handoverDate.setDate(handoverDate.getDate() + 21); // 21 days after creation
+        
+        this.createStageHistory({
+          projectId: id,
+          stage: ProjectStage.Handover,
+          notes: "Service activated and handed over to NOC for monitoring.",
+          changedBy: project.assignedTo,
+          timestamp: handoverDate
+        } as any);
+        
+        // Add handover documents
+        this.createDocument({
+          projectId: id,
+          name: "Service Handover Certificate",
+          type: "pdf",
+          url: "https://example.com/documents/handover_certificate.pdf"
+        });
+        
+        this.createDocument({
+          projectId: id,
+          name: "Network Performance Test Results",
+          type: "pdf",
+          url: "https://example.com/documents/performance_test.pdf"
+        });
+        
+        this.createDocument({
+          projectId: id,
+          name: "Customer Training Materials",
+          type: "pdf",
+          url: "https://example.com/documents/training_materials.pdf"
+        });
+        
+        // Add some tasks for completed projects
+        this.createTask({
+          projectId: id,
+          title: "Schedule final verification",
+          description: "Conduct final verification of all equipment and connections",
+          assignedTo: 5, // Assigned to NOC Engineer
+          stage: ProjectStage.Handover,
+          isCompleted: true,
+          dueDate: handoverDate
+        });
+      }
+      
+      // Add some sample tasks to each project
+      if (project.currentStage === ProjectStage.Requirements) {
+        this.createTask({
+          projectId: id,
+          title: "Collect network diagrams",
+          description: "Get network diagrams and requirements from the customer",
+          assignedTo: project.assignedTo,
+          stage: ProjectStage.Requirements,
+          isCompleted: false,
+          dueDate: new Date(baseDate.getTime() + 7 * 24 * 60 * 60 * 1000) // Due in 7 days
+        });
+      }
+      
+      if (project.currentStage === ProjectStage.Survey) {
+        this.createTask({
+          projectId: id,
+          title: "Site survey",
+          description: "Complete site survey and document findings",
+          assignedTo: 3, // Field Technician
+          stage: ProjectStage.Survey,
+          isCompleted: false,
+          dueDate: new Date(baseDate.getTime() + 5 * 24 * 60 * 60 * 1000) // Due in 5 days
+        });
+      }
+      
+      if (project.currentStage === ProjectStage.Installation) {
+        this.createTask({
+          projectId: id,
+          title: "Equipment installation",
+          description: "Install all networking equipment according to plan",
+          assignedTo: 3, // Field Technician
+          stage: ProjectStage.Installation,
+          isCompleted: false,
+          dueDate: new Date(baseDate.getTime() + 3 * 24 * 60 * 60 * 1000) // Due in 3 days
+        });
+        
+        this.createTask({
+          projectId: id,
+          title: "Network configuration",
+          description: "Configure all network devices and test connectivity",
+          assignedTo: 2, // Network Engineer
+          stage: ProjectStage.Installation,
+          isCompleted: false,
+          dueDate: new Date(baseDate.getTime() + 4 * 24 * 60 * 60 * 1000) // Due in 4 days
+        });
+      }
     });
   }
   
