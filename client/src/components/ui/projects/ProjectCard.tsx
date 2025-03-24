@@ -445,7 +445,12 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                 />
                 
                 <DialogFooter>
-                  <Button variant="outline" onClick={() => setShowUpdateDialog(false)} type="button">
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setShowUpdateDialog(false)} 
+                    type="button"
+                    className="border-slate-300 text-slate-700 hover:bg-slate-100"
+                  >
                     Cancel
                   </Button>
                   <Button 

@@ -112,7 +112,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
     <Dialog open={isOpen} onOpenChange={onClose}>
       <DialogContent className="max-w-md md:max-w-2xl lg:max-w-3xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-lg font-medium leading-6 text-slate-900">
+          <DialogTitle className="text-lg font-medium leading-6 bg-gradient-to-r from-indigo-600 to-cyan-600 bg-clip-text text-transparent">
             Create New Project
           </DialogTitle>
         </DialogHeader>
@@ -121,7 +121,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
           <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
             {/* Customer Information Section */}
             <div>
-              <h4 className="text-md font-medium text-slate-700">Customer Information</h4>
+              <h4 className="text-md font-medium bg-gradient-to-r from-indigo-500 to-cyan-600 bg-clip-text text-transparent">Customer Information</h4>
               <div className="mt-4 grid grid-cols-1 gap-y-4 gap-x-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -197,7 +197,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
             
             {/* Service Information */}
             <div>
-              <h4 className="text-md font-medium text-slate-700">Service Information</h4>
+              <h4 className="text-md font-medium bg-gradient-to-r from-indigo-500 to-cyan-600 bg-clip-text text-transparent">Service Information</h4>
               <div className="mt-4 grid grid-cols-1 gap-y-4 gap-x-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -264,7 +264,7 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
             
             {/* Project Assignment */}
             <div>
-              <h4 className="text-md font-medium text-slate-700">Project Assignment</h4>
+              <h4 className="text-md font-medium bg-gradient-to-r from-indigo-500 to-cyan-600 bg-clip-text text-transparent">Project Assignment</h4>
               <div className="mt-4 grid grid-cols-1 gap-y-4 gap-x-4 md:grid-cols-2">
                 <FormField
                   control={form.control}
@@ -316,12 +316,14 @@ export default function CreateProjectModal({ isOpen, onClose }: CreateProjectMod
                 type="button"
                 variant="outline"
                 onClick={onClose}
+                className="border-slate-300 text-slate-700 hover:bg-slate-100"
               >
                 Cancel
               </Button>
               <Button 
                 type="submit"
                 disabled={createProjectMutation.isPending}
+                className="bg-gradient-to-r from-indigo-600 to-cyan-600 hover:from-indigo-700 hover:to-cyan-700"
               >
                 {createProjectMutation.isPending ? "Creating..." : "Create Project"}
               </Button>
