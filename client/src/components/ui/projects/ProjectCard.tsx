@@ -251,7 +251,25 @@ export default function ProjectCard({ project }: ProjectCardProps) {
           {/* Documents Section */}
           {showDocuments && (
             <div className="mt-4 border-t border-gray-200 pt-4">
-              <h4 className="text-sm font-medium text-gray-900">Project Documents</h4>
+              <div className="flex items-center justify-between">
+                <h4 className="text-sm font-medium text-gray-900">Project Documents</h4>
+                <Button 
+                  variant="outline" 
+                  size="sm"
+                  onClick={() => fileInputRef.current?.click()}
+                  disabled={isUploading}
+                >
+                  <Upload className="mr-1 h-4 w-4" /> 
+                  {isUploading ? "Uploading..." : "Upload Document"}
+                </Button>
+                <input 
+                  type="file" 
+                  ref={fileInputRef} 
+                  className="hidden" 
+                  onChange={handleFileChange}
+                  accept=".pdf,.doc,.docx,.xls,.xlsx,.jpg,.jpeg,.png"
+                />
+              </div>
               {documentsLoading ? (
                 <div className="mt-2 flex justify-center">
                   <p className="text-sm text-gray-500">Loading documents...</p>
@@ -263,6 +281,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {
                       <div className="flex items-center">
                         {doc.type.includes('pdf') ? (
                           <FileText className="mr-2 h-5 w-5 text-red-500" />
+                        ) : doc.type.includes('image') ? (
+                          <File className="mr-2 h-5 w-5 text-green-500" />
                         ) : (
                           <File className="mr-2 h-5 w-5 text-blue-500" />
                         )}
