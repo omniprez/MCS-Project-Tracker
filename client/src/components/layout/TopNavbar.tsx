@@ -1,15 +1,22 @@
 import { Menu, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useLocation } from "wouter";
 
 interface TopNavbarProps {
   onMenuClick: () => void;
 }
 
 export default function TopNavbar({ onMenuClick }: TopNavbarProps) {
+  // Get the router's navigation function
+  const [_, setLocation] = useLocation();
+  
   // Since we don't have actual authentication in this app yet,
   // this will just redirect to the home page
-  const handleLogout = () => {
-    window.location.href = '/';
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default browser navigation
+    
+    // Use wouter's navigation to go to Dashboard without page refresh
+    setLocation("/");
   };
 
   return (

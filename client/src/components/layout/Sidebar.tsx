@@ -1,4 +1,4 @@
-import { Link, useRoute } from "wouter";
+import { Link, useRoute, useLocation } from "wouter";
 import { 
   LayoutDashboard, 
   Network, 
@@ -39,10 +39,16 @@ export default function Sidebar() {
   const [isPerformanceActive] = useRoute("/performance");
   const [isSettingsActive] = useRoute("/settings");
   
+  // Get the router's navigation function
+  const [_, setLocation] = useLocation();
+  
   // Since we don't have actual authentication in this app yet,
   // this will just redirect to the home page
-  const handleLogout = () => {
-    window.location.href = '/';
+  const handleLogout = (e: React.MouseEvent) => {
+    e.preventDefault(); // Prevent default browser navigation
+    
+    // Use wouter's navigation to go to Dashboard without page refresh
+    setLocation("/");
   };
   
   return (
