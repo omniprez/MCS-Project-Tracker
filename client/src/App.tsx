@@ -1,6 +1,6 @@
 import { Switch, Route, useLocation, Redirect } from "wouter";
-import { queryClient, getQueryFn } from "./lib/queryClient";
-import { QueryClientProvider, useQuery } from "@tanstack/react-query";
+import { queryClient } from "./lib/queryClient";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { Toaster } from "@/components/ui/toaster";
 import NotFound from "@/pages/not-found";
 import Dashboard from "@/pages/Dashboard";
@@ -11,39 +11,8 @@ import Settings from "@/pages/Settings";
 import Performance from "@/pages/Performance";
 import Login from "@/pages/Login";
 import AppLayout from "@/components/layout/AppLayout";
-import { createContext, useContext, ReactNode } from "react";
-
-// Create an auth context
-interface AuthContextType {
-  user: any;
-  isLoading: boolean;
-  isError: boolean;
-  refetchUser: () => void;
-}
-
-const AuthContext = createContext<AuthContextType | null>(null);
-
-export function useAuth() {
-  const context = useContext(AuthContext);
-  if (!context) {
-    throw new Error("useAuth must be used within an AuthProvider");
-  }
-  return context;
-}
-
-// Auth provider component
-function AuthProvider({ children }: { children: ReactNode }) {
-  const { data: user, isLoading, isError, refetch: refetchUser } = useQuery({
-    queryKey: ["/api/auth/me"],
-    queryFn: getQueryFn({ on401: "returnNull" }),
-  });
-
-  return (
-    <AuthContext.Provider value={{ user, isLoading, isError, refetchUser }}>
-      {children}
-    </AuthContext.Provider>
-  );
-}
+import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import { ReactNode } from "react";
 
 // Protected route component
 function ProtectedRoute({ children }: { children: ReactNode }) {
