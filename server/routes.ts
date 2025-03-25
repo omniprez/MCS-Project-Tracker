@@ -10,7 +10,10 @@ import {
   insertUserSchema,
   loginUserSchema,
   ProjectStage,
-  ServiceType
+  ServiceType,
+  InsertTeamMemberBadge,
+  PerformanceMetric,
+  MonthlyTeamPerformance
 } from "@shared/schema";
 import passport from "passport";
 import { isAuthenticated, hashPassword, isUsernameAvailable } from "./auth";
@@ -525,3 +528,4 @@ export async function registerRoutes(app: Express): Promise<Server> {
   const httpServer = createServer(app);
   return httpServer;
 }
+
