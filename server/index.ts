@@ -2,11 +2,41 @@ import express, { type Request, Response, NextFunction } from "express";
 import { registerRoutes } from "./routes";
 import { setupVite, serveStatic, log } from "./vite";
 import path from "path";
+import session from "express-session";
+import passport from "passport";
+import { setupPassport } from "./auth";
+import pgSession from "connect-pg-simple";
+import { pool } from "./db";
 
 const app = express();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use('/uploads', express.static(path.join(process.cwd(), 'uploads')));
+
+// Initialize session store
+const PgSessionStore = pgSession(session);
+const sessionStore = new PgSessionStore({
+  pool,
+  tableName: 'session',
+  createTableIfMissing: true
+});
+
+// Configure session
+app.use(session({
+  store: sessionStore,
+  secret: process.env.SESSION_SECRET || 'isp-project-tracker-secret',
+  resave: false,
+  saveUninitialized: false,
+  cookie: {
+    maxAge: 30 * 24 * 60 * 60 * 1000, // 30 days
+    httpOnly: true
+  }
+}));
+
+// Initialize passport
+const passportInstance = setupPassport();
+app.use(passport.initialize());
+app.use(passport.session());
 
 app.use((req, res, next) => {
   const start = Date.now();

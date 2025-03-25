@@ -53,7 +53,15 @@ export function setupPassport() {
 
 // Middleware to check if user is authenticated
 export function isAuthenticated(req: Request, res: Response, next: NextFunction) {
-  if (req.isAuthenticated()) {
+  // For TypeScript - add the isAuthenticated method from passport
+  interface AuthenticatedRequest extends Request {
+    isAuthenticated(): boolean;
+    user?: any;
+  }
+  
+  const authReq = req as AuthenticatedRequest;
+  
+  if (authReq.isAuthenticated && authReq.isAuthenticated()) {
     return next();
   }
   
