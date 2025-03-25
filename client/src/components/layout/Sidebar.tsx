@@ -8,6 +8,7 @@ import {
   LogOut,
   Award
 } from "lucide-react";
+import { useAuth } from "@/contexts/AuthContext";
 
 interface NavItemProps {
   href: string;
@@ -42,13 +43,30 @@ export default function Sidebar() {
   // Get the router's navigation function
   const [_, setLocation] = useLocation();
   
-  // Since we don't have actual authentication in this app yet,
-  // this will just redirect to the home page
-  const handleLogout = (e: React.MouseEvent) => {
+  // Get auth context for user data and logout
+  const { user, refetchUser } = useAuth();
+  
+  const handleLogout = async (e: React.MouseEvent) => {
     e.preventDefault(); // Prevent default browser navigation
     
-    // Use wouter's navigation to go to Dashboard without page refresh
-    setLocation("/");
+    try {
+      const res = await fetch('/api/auth/logout', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+      });
+      
+      if (res.ok) {
+        // Refresh user data and redirect to login
+        await refetchUser();
+        setLocation("/login");
+      } else {
+        console.error('Logout failed');
+      }
+    } catch (error) {
+      console.error('Logout error:', error);
+    }
   };
   
   return (
@@ -106,11 +124,13 @@ export default function Sidebar() {
         <div className="flex items-center justify-between p-4 border-t border-slate-200 bg-slate-50">
           <div className="flex items-center">
             <div className="w-8 h-8 rounded-full bg-gradient-to-r from-indigo-500 to-cyan-500 flex items-center justify-center">
-              <span className="text-sm font-medium text-white">JD</span>
+              <span className="text-sm font-medium text-white">
+                {user ? user.name.substring(0, 2).toUpperCase() : '??'}
+              </span>
             </div>
             <div className="ml-3">
-              <p className="text-sm font-medium text-slate-700">John Doe</p>
-              <p className="text-xs text-slate-500">Project Manager</p>
+              <p className="text-sm font-medium text-slate-700">{user ? user.name : 'Loading...'}</p>
+              <p className="text-xs text-slate-500">{user?.role || 'Staff'}</p>
             </div>
           </div>
           <button 
