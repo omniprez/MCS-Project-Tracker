@@ -14,6 +14,7 @@ import { z } from "zod";
 import multer from "multer";
 import path from "path";
 import fs from "fs";
+import { sendNewProjectNotification, sendProjectUpdateNotification, checkEmailConfiguration } from "./services/emailService";
 
 // Configure multer for file uploads
 const uploadsDir = path.join(process.cwd(), "uploads");
@@ -77,6 +78,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       const project = await storage.createProject(projectData);
       console.log("Created project:", project);
       
+      // Send email notification for the new project
+      try {
+        // Check if email configuration is valid before attempting to send
+        if (checkEmailConfiguration()) {
+          await sendNewProjectNotification(project);
+          console.log("New project notification email sent");
+        } else {
+          console.log("Email configuration not set up, skipping notification");
+        }
+      } catch (emailError) {
+        // Don't fail the request if email sending fails
+        console.error("Error sending email notification:", emailError);
+      }
+      
       res.status(201).json(project);
     } catch (error) {
       console.error("Error creating project:", error);
@@ -101,6 +116,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       }
       
       const updatedProject = await storage.updateProject(id, req.body);
+      
+      // Send email notification for the project update
+      try {
+        if (checkEmailConfiguration() && updatedProject) {
+          await sendProjectUpdateNotification(updatedProject, 'details');
+          console.log("Project update notification email sent");
+        } else {
+          console.log("Email configuration not set up or project is undefined, skipping notification");
+        }
+      } catch (emailError) {
+        // Don't fail the request if email sending fails
+        console.error("Error sending email notification:", emailError);
+      }
+      
       res.json(updatedProject);
     } catch (error) {
       res.status(500).json({ message: "Error updating project" });
@@ -140,6 +169,19 @@ export async function registerRoutes(app: Express): Promise<Server> {
       });
       
       await storage.createStageHistory(stageHistoryData);
+      
+      // Send email notification for the stage advancement
+      try {
+        if (checkEmailConfiguration() && updatedProject) {
+          await sendProjectUpdateNotification(updatedProject, 'stage');
+          console.log("Project stage update notification email sent");
+        } else {
+          console.log("Email configuration not set up or project is undefined, skipping notification");
+        }
+      } catch (emailError) {
+        // Don't fail the request if email sending fails
+        console.error("Error sending email notification:", emailError);
+      }
       
       res.json(updatedProject);
     } catch (error) {
@@ -283,6 +325,20 @@ export async function registerRoutes(app: Express): Promise<Server> {
       };
       
       const document = await storage.createDocument(documentData);
+      
+      // Send email notification for the document upload
+      try {
+        if (checkEmailConfiguration()) {
+          await sendProjectUpdateNotification(project, 'document');
+          console.log("Document upload notification email sent");
+        } else {
+          console.log("Email configuration not set up, skipping notification");
+        }
+      } catch (emailError) {
+        // Don't fail the request if email sending fails
+        console.error("Error sending email notification:", emailError);
+      }
+      
       res.status(201).json(document);
     } catch (error) {
       console.error("Error uploading document:", error);

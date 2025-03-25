@@ -20,6 +20,13 @@ const transporter = nodemailer.createTransport({
 });
 
 // Create email templates directory if it doesn't exist
+// Using import.meta.url instead of __dirname for ES modules
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
+
 const templatesDir = path.join(__dirname, '..', '..', 'templates');
 if (!fs.existsSync(templatesDir)) {
   fs.mkdirSync(templatesDir, { recursive: true });
