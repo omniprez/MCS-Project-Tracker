@@ -1,4 +1,4 @@
-import nodemailer from 'nodemailer';
+import sgMail from '@sendgrid/mail';
 import Handlebars from 'handlebars';
 import fs from 'fs';
 import path from 'path';
@@ -7,17 +7,14 @@ import { db } from '../db';
 import { eq } from 'drizzle-orm';
 import { teamMembers } from '@shared/schema';
 
-// Email configuration
-// In production, you would use actual SMTP credentials from environment variables
-const transporter = nodemailer.createTransport({
-  host: process.env.EMAIL_HOST || 'smtp.example.com',
-  port: parseInt(process.env.EMAIL_PORT || '587'),
-  secure: process.env.EMAIL_SECURE === 'true',
-  auth: {
-    user: process.env.EMAIL_USER || 'user@example.com',
-    pass: process.env.EMAIL_PASSWORD || 'password',
-  },
-});
+// Initialize SendGrid
+const SENDGRID_API_KEY = process.env.SENDGRID_API_KEY;
+if (SENDGRID_API_KEY) {
+  sgMail.setApiKey(SENDGRID_API_KEY);
+  console.log('SendGrid API initialized successfully');
+} else {
+  console.warn('SendGrid API key not provided, email notifications will be disabled');
+}
 
 // Create email templates directory if it doesn't exist
 // Using import.meta.url instead of __dirname for ES modules
@@ -165,6 +162,12 @@ async function getTeamMembersToNotify(project: Project): Promise<TeamMember[]> {
  * Send an email notification about a new project
  */
 export async function sendNewProjectNotification(project: Project): Promise<void> {
+  // Skip if SendGrid API key is not configured
+  if (!SENDGRID_API_KEY) {
+    console.warn('SendGrid API key not provided, skipping email notification');
+    return;
+  }
+  
   try {
     const recipientsTeamMembers = await getTeamMembersToNotify(project);
     
@@ -193,18 +196,21 @@ export async function sendNewProjectNotification(project: Project): Promise<void
       
       const htmlContent = compileTemplate(newProjectTemplateFile, emailData);
       
-      const mailOptions = {
-        from: process.env.EMAIL_FROM || 'isp-projects@example.com',
+      const msg = {
         to: recipient.email,
+        from: process.env.EMAIL_FROM || 'noreply@ispprojectmanager.com', // Must be verified in SendGrid
         subject: `New Project Created - ${project.projectId} - ${project.customerName}`,
-        html: htmlContent
+        html: htmlContent,
       };
       
-      await transporter.sendMail(mailOptions);
+      await sgMail.send(msg);
       console.log(`New project notification sent to ${recipient.email}`);
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error sending new project notification:', error);
+    if (error.response) {
+      console.error('SendGrid API error:', error.response.body);
+    }
   }
 }
 
@@ -215,6 +221,12 @@ export async function sendProjectUpdateNotification(
   project: Project, 
   updateType: 'details' | 'stage' | 'document'
 ): Promise<void> {
+  // Skip if SendGrid API key is not configured
+  if (!SENDGRID_API_KEY) {
+    console.warn('SendGrid API key not provided, skipping email notification');
+    return;
+  }
+  
   try {
     const recipientsTeamMembers = await getTeamMembersToNotify(project);
     
@@ -260,27 +272,28 @@ export async function sendProjectUpdateNotification(
       
       const htmlContent = compileTemplate(updatedProjectTemplateFile, emailData);
       
-      const mailOptions = {
-        from: process.env.EMAIL_FROM || 'isp-projects@example.com',
+      const msg = {
         to: recipient.email,
+        from: process.env.EMAIL_FROM || 'noreply@ispprojectmanager.com', // Must be verified in SendGrid
         subject: `Project Updated - ${project.projectId} - ${project.customerName}`,
-        html: htmlContent
+        html: htmlContent,
       };
       
-      await transporter.sendMail(mailOptions);
+      await sgMail.send(msg);
       console.log(`Project update notification sent to ${recipient.email}`);
     }
   } catch (error) {
     console.error('Error sending project update notification:', error);
+    if (error.response) {
+      console.error('SendGrid API error:', error.response.body);
+    }
   }
 }
 
 // Check if email service is properly configured
 export function checkEmailConfiguration(): boolean {
   return !!(
-    process.env.EMAIL_HOST && 
-    process.env.EMAIL_PORT && 
-    process.env.EMAIL_USER && 
-    process.env.EMAIL_PASSWORD
+    process.env.SENDGRID_API_KEY && 
+    process.env.EMAIL_FROM
   );
 }
