@@ -524,7 +524,121 @@ export async function registerRoutes(app: Express): Promise<Server> {
       res.status(500).json({ message: "Error fetching dashboard stats" });
     }
   });
+  // GET team member badges
+  app.get("/api/team-members/:id/badges", async (req: Request, res: Response) => {
+    try {
+      const teamMemberId = parseInt(req.params.id);
+      const badges = await storage.getTeamMemberBadges(teamMemberId);
+      res.json(badges);
+    } catch (error) {
+      console.error("Error getting team member badges:", error);
+      res.status(500).json({ message: "Failed to retrieve badges" });
+    }
+  });
 
+  // POST award a badge to a team member
+  app.post("/api/team-members/:id/badges", async (req: Request, res: Response) => {
+    try {
+      const teamMemberId = parseInt(req.params.id);
+      const badgeData: InsertTeamMemberBadge = {
+        teamMemberId,
+        badgeType: req.body.badgeType,
+        reason: req.body.reason
+      };
+
+      const newBadge = await storage.awardBadge(badgeData);
+      res.status(201).json(newBadge);
+    } catch (error) {
+      console.error("Error awarding badge:", error);
+      res.status(500).json({ message: "Failed to award badge" });
+    }
+  });
+
+  // GET team member performance
+  app.get("/api/team-members/:id/performance", async (req: Request, res: Response) => {
+    try {
+      const teamMemberId = parseInt(req.params.id);
+      const performance = await storage.getTeamMemberPerformance(teamMemberId);
+
+      if (!performance) {
+        return res.status(404).json({ message: "Performance metrics not found" });
+      }
+
+      res.json(performance);
+    } catch (error) {
+      console.error("Error getting team member performance:", error);
+      res.status(500).json({ message: "Failed to retrieve performance metrics" });
+    }
+  });
+
+  // PUT/update team member performance
+  app.put("/api/team-members/:id/performance", async (req: Request, res: Response) => {
+    try {
+      const teamMemberId = parseInt(req.params.id);
+      const metrics: Partial<PerformanceMetric> = {
+        projectsCompleted: req.body.projectsCompleted,
+        avgCompletionTime: req.body.avgCompletionTime,
+        customerSatisfactionScore: req.body.customerSatisfactionScore
+      };
+
+      const updatedMetrics = await storage.updateTeamMemberPerformance(teamMemberId, metrics);
+      res.json(updatedMetrics);
+    } catch (error) {
+      console.error("Error updating team member performance:", error);
+      res.status(500).json({ message: "Failed to update performance metrics" });
+    }
+  });
+
+  // GET monthly team performance
+  app.get("/api/performance/monthly/:year/:month", async (req: Request, res: Response) => {
+    try {
+      const year = parseInt(req.params.year);
+      const month = parseInt(req.params.month);
+
+      const performance = await storage.getMonthlyTeamPerformance(month, year);
+
+      if (!performance) {
+        return res.status(404).json({ message: "Monthly performance not found" });
+      }
+
+      res.json(performance);
+    } catch (error) {
+      console.error("Error getting monthly team performance:", error);
+      res.status(500).json({ message: "Failed to retrieve monthly performance" });
+    }
+  });
+
+  // GET all monthly team performance for a year
+  app.get("/api/performance/monthly/:year", async (req: Request, res: Response) => {
+    try {
+      const year = parseInt(req.params.year);
+      const performances = await storage.getAllMonthlyTeamPerformance(year);
+      res.json(performances);
+    } catch (error) {
+      console.error("Error getting yearly team performance:", error);
+      res.status(500).json({ message: "Failed to retrieve yearly performance data" });
+    }
+  });
+
+  // PUT/update monthly team performance
+  app.put("/api/performance/monthly/:year/:month", async (req: Request, res: Response) => {
+    try {
+      const year = parseInt(req.params.year);
+      const month = parseInt(req.params.month);
+
+      const performanceData: Partial<MonthlyTeamPerformance> = {
+        avgProjectCompletionTime: req.body.avgProjectCompletionTime,
+        projectsCompleted: req.body.projectsCompleted, 
+        customerSatisfactionAvg: req.body.customerSatisfactionAvg
+      };
+
+      const updatedPerformance = await storage.updateMonthlyTeamPerformance(month, year, performanceData);
+      res.json(updatedPerformance);
+    } catch (error) {
+      console.error("Error updating monthly team performance:", error);
+      res.status(500).json({ message: "Failed to update monthly performance" });
+    }
+  });
   const httpServer = createServer(app);
   return httpServer;
 }
