@@ -1,4 +1,4 @@
-import { Menu, Bell } from "lucide-react";
+import { Menu, Bell, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TopNavbarProps {
@@ -6,6 +6,12 @@ interface TopNavbarProps {
 }
 
 export default function TopNavbar({ onMenuClick }: TopNavbarProps) {
+  // Since we don't have actual authentication in this app yet,
+  // this will just redirect to the home page
+  const handleLogout = () => {
+    window.location.href = '/';
+  };
+
   return (
     <div className="relative z-10 flex h-16 flex-shrink-0 bg-gradient-to-r from-indigo-600 to-cyan-600 shadow md:hidden">
       <Button
@@ -20,8 +26,12 @@ export default function TopNavbar({ onMenuClick }: TopNavbarProps) {
           <h1 className="text-xl font-bold text-white my-auto">ISP Project Tracker</h1>
         </div>
         <div className="ml-4 flex items-center md:ml-6">
-          <button type="button" className="rounded-full p-1 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-white">
-            <Bell className="h-6 w-6" />
+          <button 
+            type="button" 
+            className="rounded-full p-1 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-white"
+            onClick={handleLogout}
+          >
+            <LogOut className="h-6 w-6" />
           </button>
           <div className="relative ml-3">
             <div>

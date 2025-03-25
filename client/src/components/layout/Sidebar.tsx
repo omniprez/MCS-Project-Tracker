@@ -39,6 +39,12 @@ export default function Sidebar() {
   const [isPerformanceActive] = useRoute("/performance");
   const [isSettingsActive] = useRoute("/settings");
   
+  // Since we don't have actual authentication in this app yet,
+  // this will just redirect to the home page
+  const handleLogout = () => {
+    window.location.href = '/';
+  };
+  
   return (
     <div className="hidden md:flex md:flex-shrink-0">
       <div className="flex flex-col w-64 bg-white border-r border-slate-200">
@@ -101,7 +107,10 @@ export default function Sidebar() {
               <p className="text-xs text-slate-500">Project Manager</p>
             </div>
           </div>
-          <button className="text-slate-500 hover:text-indigo-600 transition-colors">
+          <button 
+            onClick={handleLogout}
+            className="text-slate-500 hover:text-indigo-600 transition-colors p-1 rounded-full hover:bg-slate-200"
+          >
             <LogOut className="h-5 w-5" />
           </button>
         </div>
