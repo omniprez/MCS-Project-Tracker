@@ -58,6 +58,19 @@ export interface IStorage {
   createTask(task: InsertTask): Promise<Task>;
   updateTask(id: number, task: Partial<Task>): Promise<Task | undefined>;
   
+  // Badge methods
+  getTeamMemberBadges(teamMemberId: number): Promise<TeamMemberBadge[]>;
+  awardBadge(badge: InsertTeamMemberBadge): Promise<TeamMemberBadge>;
+  
+  // Performance metrics methods
+  getTeamMemberPerformance(teamMemberId: number): Promise<PerformanceMetric | undefined>;
+  updateTeamMemberPerformance(teamMemberId: number, metrics: Partial<PerformanceMetric>): Promise<PerformanceMetric>;
+  
+  // Team performance methods
+  getMonthlyTeamPerformance(month: number, year: number): Promise<MonthlyTeamPerformance | undefined>;
+  updateMonthlyTeamPerformance(month: number, year: number, data: Partial<MonthlyTeamPerformance>): Promise<MonthlyTeamPerformance>;
+  getAllMonthlyTeamPerformance(year: number): Promise<MonthlyTeamPerformance[]>;
+  
   // Dashboard stats
   getProjectCountByStage(): Promise<Record<ProjectStage, number>>;
   searchProjects(query: string): Promise<Project[]>;
@@ -871,6 +884,115 @@ export class DatabaseStorage implements IStorage {
           sql`lower(${projects.address}) like ${lowercaseQuery}`
         )
       );
+  }
+  
+  // Badge methods
+  async getTeamMemberBadges(teamMemberId: number): Promise<TeamMemberBadge[]> {
+    return await db
+      .select()
+      .from(teamMemberBadges)
+      .where(eq(teamMemberBadges.teamMemberId, teamMemberId));
+  }
+  
+  async awardBadge(badge: InsertTeamMemberBadge): Promise<TeamMemberBadge> {
+    const [newBadge] = await db
+      .insert(teamMemberBadges)
+      .values({
+        ...badge,
+        awardedAt: new Date()
+      })
+      .returning();
+    return newBadge;
+  }
+  
+  // Performance metrics methods
+  async getTeamMemberPerformance(teamMemberId: number): Promise<PerformanceMetric | undefined> {
+    const [metric] = await db
+      .select()
+      .from(performanceMetrics)
+      .where(eq(performanceMetrics.teamMemberId, teamMemberId));
+    return metric || undefined;
+  }
+  
+  async updateTeamMemberPerformance(teamMemberId: number, metrics: Partial<PerformanceMetric>): Promise<PerformanceMetric> {
+    // Check if a record exists
+    const existingMetric = await this.getTeamMemberPerformance(teamMemberId);
+    
+    if (existingMetric) {
+      // Update existing record
+      const [updatedMetric] = await db
+        .update(performanceMetrics)
+        .set({
+          ...metrics,
+          updatedAt: new Date()
+        })
+        .where(eq(performanceMetrics.id, existingMetric.id))
+        .returning();
+      return updatedMetric;
+    } else {
+      // Create new record
+      const [newMetric] = await db
+        .insert(performanceMetrics)
+        .values({
+          teamMemberId,
+          projectsCompleted: metrics.projectsCompleted || 0,
+          avgCompletionTime: metrics.avgCompletionTime || 0,
+          customerSatisfactionScore: metrics.customerSatisfactionScore || 0,
+          updatedAt: new Date()
+        })
+        .returning();
+      return newMetric;
+    }
+  }
+  
+  // Team performance methods
+  async getMonthlyTeamPerformance(month: number, year: number): Promise<MonthlyTeamPerformance | undefined> {
+    const [performance] = await db
+      .select()
+      .from(monthlyTeamPerformance)
+      .where(
+        and(
+          eq(monthlyTeamPerformance.month, month),
+          eq(monthlyTeamPerformance.year, year)
+        )
+      );
+    return performance || undefined;
+  }
+  
+  async updateMonthlyTeamPerformance(month: number, year: number, data: Partial<MonthlyTeamPerformance>): Promise<MonthlyTeamPerformance> {
+    // Check if a record exists
+    const existingPerformance = await this.getMonthlyTeamPerformance(month, year);
+    
+    if (existingPerformance) {
+      // Update existing record
+      const [updatedPerformance] = await db
+        .update(monthlyTeamPerformance)
+        .set(data)
+        .where(eq(monthlyTeamPerformance.id, existingPerformance.id))
+        .returning();
+      return updatedPerformance;
+    } else {
+      // Create new record
+      const [newPerformance] = await db
+        .insert(monthlyTeamPerformance)
+        .values({
+          month,
+          year,
+          avgProjectCompletionTime: data.avgProjectCompletionTime || 0,
+          projectsCompleted: data.projectsCompleted || 0,
+          customerSatisfactionAvg: data.customerSatisfactionAvg || 0
+        })
+        .returning();
+      return newPerformance;
+    }
+  }
+  
+  async getAllMonthlyTeamPerformance(year: number): Promise<MonthlyTeamPerformance[]> {
+    return await db
+      .select()
+      .from(monthlyTeamPerformance)
+      .where(eq(monthlyTeamPerformance.year, year))
+      .orderBy(monthlyTeamPerformance.month);
   }
 }
 
