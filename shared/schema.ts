@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, date } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -51,6 +51,20 @@ export enum TeamMemberRole {
   FieldTechnician = "Field Technician",
   SalesRepresentative = "Sales Representative",
   NOCEngineer = "NOC Engineer",
+}
+
+// Badge types
+export enum BadgeType {
+  SpeedDemon = "speed_demon",         // For completing projects ahead of schedule
+  TechWizard = "tech_wizard",         // For resolving complex technical issues
+  CustomerWhisperer = "customer_whisperer", // For excellent customer satisfaction
+  TeamPlayer = "team_player",         // For helping team members
+  FirstMile = "first_mile",           // First project completion milestone
+  FifthMile = "fifth_mile",           // Five projects completed milestone
+  TenthMile = "tenth_mile",           // Ten projects completed milestone
+  PerfectScore = "perfect_score",     // For completing a project with no issues
+  OnTime = "on_time",                 // For completing projects on time
+  EfficiencyExpert = "efficiency_expert" // For completing projects with minimal resources
 }
 
 // Project schema
@@ -115,6 +129,40 @@ export const tasks = pgTable("tasks", {
   createdAt: timestamp("created_at").notNull().defaultNow(),
 });
 
+// Team member badges schema
+export const teamMemberBadges = pgTable("team_member_badges", {
+  id: serial("id").primaryKey(),
+  teamMemberId: integer("team_member_id").notNull(),
+  badgeType: text("badge_type").notNull(),
+  awardedAt: timestamp("awarded_at").notNull().defaultNow(),
+  projectId: integer("project_id"), // Optional: which project earned this badge
+  description: text("description"), // Custom description or reasoning for the badge
+});
+
+// Performance metrics schema
+export const performanceMetrics = pgTable("performance_metrics", {
+  id: serial("id").primaryKey(),
+  teamMemberId: integer("team_member_id").notNull(),
+  projectsCompleted: integer("projects_completed").notNull().default(0),
+  tasksCompleted: integer("tasks_completed").notNull().default(0),
+  avgCompletionTime: integer("avg_completion_time"), // in days
+  onTimeDeliveryRate: integer("on_time_delivery_rate"), // percentage
+  customerSatisfactionScore: integer("customer_satisfaction_score"), // 1-10 rating
+  updatedAt: timestamp("updated_at").notNull().defaultNow(),
+});
+
+// Monthly team performance schema
+export const monthlyTeamPerformance = pgTable("monthly_team_performance", {
+  id: serial("id").primaryKey(), 
+  month: date("month").notNull(),
+  year: integer("year").notNull(),
+  projectsStarted: integer("projects_started").notNull().default(0),
+  projectsCompleted: integer("projects_completed").notNull().default(0),
+  avgCompletionTime: integer("avg_completion_time"), // in days
+  customerSatisfactionAvg: integer("customer_satisfaction_avg"), // 1-10 rating
+  teamMemberCount: integer("team_member_count").notNull().default(0),
+});
+
 // Insert schemas
 export const insertProjectSchema = createInsertSchema(projects)
   .omit({ id: true, createdAt: true, updatedAt: true })
@@ -136,6 +184,29 @@ export const insertProjectStageHistorySchema = createInsertSchema(projectStageHi
 export const insertTaskSchema = createInsertSchema(tasks)
   .omit({ id: true, createdAt: true });
 
+export const insertTeamMemberBadgeSchema = createInsertSchema(teamMemberBadges)
+  .omit({ id: true, awardedAt: true })
+  .extend({
+    badgeType: z.enum([
+      BadgeType.SpeedDemon,
+      BadgeType.TechWizard,
+      BadgeType.CustomerWhisperer,
+      BadgeType.TeamPlayer,
+      BadgeType.FirstMile,
+      BadgeType.FifthMile,
+      BadgeType.TenthMile,
+      BadgeType.PerfectScore,
+      BadgeType.OnTime,
+      BadgeType.EfficiencyExpert
+    ])
+  });
+
+export const insertPerformanceMetricSchema = createInsertSchema(performanceMetrics)
+  .omit({ id: true, updatedAt: true });
+
+export const insertMonthlyTeamPerformanceSchema = createInsertSchema(monthlyTeamPerformance)
+  .omit({ id: true });
+
 // Types
 export type InsertProject = z.infer<typeof insertProjectSchema>;
 export type Project = typeof projects.$inferSelect;
@@ -151,3 +222,12 @@ export type ProjectStageHistory = typeof projectStageHistory.$inferSelect;
 
 export type InsertTask = z.infer<typeof insertTaskSchema>;
 export type Task = typeof tasks.$inferSelect;
+
+export type InsertTeamMemberBadge = z.infer<typeof insertTeamMemberBadgeSchema>;
+export type TeamMemberBadge = typeof teamMemberBadges.$inferSelect;
+
+export type InsertPerformanceMetric = z.infer<typeof insertPerformanceMetricSchema>;
+export type PerformanceMetric = typeof performanceMetrics.$inferSelect;
+
+export type InsertMonthlyTeamPerformance = z.infer<typeof insertMonthlyTeamPerformanceSchema>;
+export type MonthlyTeamPerformance = typeof monthlyTeamPerformance.$inferSelect;
