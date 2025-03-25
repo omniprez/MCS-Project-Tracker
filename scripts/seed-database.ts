@@ -1,308 +1,353 @@
 import { db } from "../server/db";
 import { 
-  projects, 
+  users, 
   teamMembers, 
-  projectDocuments,
-  projectStageHistory,
+  projects, 
+  projectStageHistory, 
+  projectDocuments, 
   tasks,
   ProjectStage,
-  ServiceType
+  ServiceType,
+  TeamMemberRole
 } from "../shared/schema";
+import { hashPassword } from "../server/auth";
 
 async function seedDatabase() {
-  console.log("Seeding database...");
-  
-  // Check if we already have data
-  const existingTeamMembers = await db.select().from(teamMembers);
-  const existingProjects = await db.select().from(projects);
-  
-  if (existingTeamMembers.length === 0) {
-    console.log("Adding team members...");
-    // Only add if none exist
-    await db.insert(teamMembers).values([
-      {
-        name: "John Smith",
-        role: "Project Manager",
-        email: "john.smith@isptracker.com",
-        phone: "555-123-4567"
-      },
-      {
-        name: "Sarah Johnson",
-        role: "Network Engineer",
-        email: "sarah.johnson@isptracker.com",
-        phone: "555-234-5678"
-      },
-      {
-        name: "Michael Chen",
-        role: "Field Technician",
-        email: "michael.chen@isptracker.com",
-        phone: "555-345-6789"
-      },
-      {
-        name: "Emily Rodriguez",
-        role: "Sales Representative",
-        email: "emily.rodriguez@isptracker.com",
-        phone: "555-456-7890"
-      },
-      {
-        name: "David Wilson",
-        role: "NOC Engineer",
-        email: "david.wilson@isptracker.com",
-        phone: "555-567-8901"
-      }
-    ]);
-  }
-  
-  // Get team members for assignment
-  const teamMembersList = await db.select().from(teamMembers);
-  
-  if (existingProjects.length === 0 && teamMembersList.length > 0) {
-    console.log("Adding sample projects...");
+  try {
+    console.log("Starting database seeding...");
     
-    // Add sample projects
-    const sampleProjects = [
+    // Check if we already have data
+    const existingTeamMembers = await db.select().from(teamMembers);
+    if (existingTeamMembers.length > 0) {
+      console.log("Database already contains data, skipping seeding");
+      return;
+    }
+    
+    // Seed team members
+    console.log("Seeding team members...");
+    const defaultTeamMembers = [
+      { name: "Sarah Johnson", role: TeamMemberRole.ProjectManager, email: "sarah@isp.com", phone: "555-123-4567" },
+      { name: "Michael Chen", role: TeamMemberRole.NetworkEngineer, email: "michael@isp.com", phone: "555-234-5678" },
+      { name: "Alex Rodriguez", role: TeamMemberRole.FieldTechnician, email: "alex@isp.com", phone: "555-345-6789" },
+      { name: "Emily Wilson", role: TeamMemberRole.SalesRepresentative, email: "emily@isp.com", phone: "555-456-7890" },
+      { name: "David Kim", role: TeamMemberRole.NOCEngineer, email: "david@isp.com", phone: "555-567-8901" }
+    ];
+    
+    const [team1, team2, team3, team4, team5] = await db.insert(teamMembers).values(defaultTeamMembers).returning();
+    
+    // Create admin user if doesn't exist
+    const adminExists = await db.select().from(users).where(u => u.username.equals("admin"));
+    if (adminExists.length === 0) {
+      console.log("Creating admin user...");
+      const hashedPassword = await hashPassword("admin123");
+      await db.insert(users).values({
+        username: "admin",
+        password: hashedPassword,
+        name: "Administrator",
+        role: "Admin",
+        email: "admin@example.com"
+      });
+    }
+    
+    // Seed projects
+    console.log("Seeding projects...");
+    const now = new Date();
+    const projectsData = [
       {
-        projectId: "FIBER-2025-001",
-        customerName: "Acme Corporation",
-        contactPerson: "Robert Johnson",
-        contactEmail: "robert@acme.com",
-        contactPhone: "555-111-2222",
-        email: "info@acme.com",
-        phone: "555-111-2222",
-        address: "123 Business Park, Suite 100, San Francisco, CA 94107",
+        projectId: "P-2025-0001",
+        customerName: "TechCorp Solutions",
+        contactPerson: "John Anderson",
+        email: "john@techcorp.com",
+        phone: "555-789-1234",
+        address: "123 Innovation Way, Technology Park, CA 94025",
         serviceType: ServiceType.Fiber,
         bandwidth: 1000,
-        requirements: "Dedicated fiber connection with 99.99% uptime SLA. Redundant path required.",
-        assignedTo: teamMembersList.find(m => m.role === "Project Manager")?.id || teamMembersList[0].id,
-        expectedCompletion: "2025-05-30",
-        currentStage: ProjectStage.Survey,
-        isCompleted: false
-      },
-      {
-        projectId: "WIRELESS-2025-002",
-        customerName: "TechStart Innovations",
-        contactPerson: "Maria Garcia",
-        contactEmail: "maria@techstart.com",
-        contactPhone: "555-222-3333",
-        email: "info@techstart.com",
-        phone: "555-222-3333",
-        address: "456 Innovation Hub, Austin, TX 78701",
-        serviceType: ServiceType.Wireless,
-        bandwidth: 200,
-        requirements: "Point-to-point wireless connection for new office location. Roof access available.",
-        assignedTo: teamMembersList.find(m => m.role === "Network Engineer")?.id || teamMembersList[0].id,
-        expectedCompletion: "2025-04-15",
+        requirements: "Fiber connection for new office building with 250 employees. Redundant connection required. 24/7 support with 99.99% SLA.",
+        assignedTo: team1.id,
+        expectedCompletion: new Date("2025-05-15"),
         currentStage: ProjectStage.Requirements,
-        isCompleted: false
+        isCompleted: false,
+        createdAt: now,
+        updatedAt: now
       },
       {
-        projectId: "FIBER-2025-003",
-        customerName: "Global Financial Services",
-        contactPerson: "James Wilson",
-        contactEmail: "james@globalfinancial.com",
-        contactPhone: "555-333-4444",
-        email: "contact@globalfinancial.com",
-        phone: "555-333-4444",
-        address: "789 Finance Tower, Floor 20, New York, NY 10004",
+        projectId: "P-2025-0002",
+        customerName: "Global Financial Group",
+        contactPerson: "Lisa Wong",
+        email: "lwong@gfg.com",
+        phone: "555-456-7890",
+        address: "888 Money Avenue, Financial District, NY 10004",
         serviceType: ServiceType.Fiber,
         bandwidth: 10000,
-        requirements: "Ultra-low latency connection to financial data centers. Compliance with financial security standards required.",
-        assignedTo: teamMembersList.find(m => m.role === "Project Manager")?.id || teamMembersList[0].id,
-        expectedCompletion: "2025-06-30",
-        currentStage: ProjectStage.Confirmation,
-        isCompleted: false
+        requirements: "Ultra-low latency connection between main office and data center. Dedicated fiber path with automatic failover.",
+        assignedTo: team2.id,
+        expectedCompletion: new Date("2025-06-20"),
+        currentStage: ProjectStage.Survey,
+        isCompleted: false,
+        createdAt: new Date(now.getTime() - 7 * 24 * 60 * 60 * 1000), // 7 days ago
+        updatedAt: new Date(now.getTime() - 3 * 24 * 60 * 60 * 1000)  // 3 days ago
       },
       {
-        projectId: "WIRELESS-2025-004",
-        customerName: "City Public Schools District",
-        contactPerson: "Elizabeth Chen",
-        contactEmail: "elizabeth@cityschools.edu",
-        contactPhone: "555-444-5555",
-        email: "info@cityschools.edu",
-        phone: "555-444-5555",
-        address: "101 Education Avenue, Chicago, IL 60601",
-        serviceType: ServiceType.Wireless,
+        projectId: "P-2025-0003",
+        customerName: "Mountain View Medical Center",
+        contactPerson: "Dr. Sarah Patel",
+        email: "spatel@mvmc.org",
+        phone: "555-222-3333",
+        address: "456 Healing Boulevard, Mountain View, CA 94040",
+        serviceType: ServiceType.Fiber,
         bandwidth: 500,
-        requirements: "Multi-building campus connectivity for school district. E-rate funding program compliant.",
-        assignedTo: teamMembersList.find(m => m.role === "Sales Representative")?.id || teamMembersList[0].id,
-        expectedCompletion: "2025-07-15",
-        currentStage: ProjectStage.Installation,
-        isCompleted: false
+        requirements: "HIPAA-compliant network connection for new wing of hospital. Secure VPN access for remote staff.",
+        assignedTo: team1.id,
+        expectedCompletion: new Date("2025-04-30"),
+        currentStage: ProjectStage.Confirmation,
+        isCompleted: false,
+        createdAt: new Date(now.getTime() - 14 * 24 * 60 * 60 * 1000), // 14 days ago
+        updatedAt: new Date(now.getTime() - 5 * 24 * 60 * 60 * 1000)   // 5 days ago
       },
       {
-        projectId: "FIBER-2024-005",
-        customerName: "Healthcare Solutions Inc.",
-        contactPerson: "Michael Brown",
-        contactEmail: "michael@healthsolutions.com",
-        contactPhone: "555-555-6666",
-        email: "contact@healthsolutions.com",
-        phone: "555-555-6666",
-        address: "202 Medical Plaza, Seattle, WA 98101",
+        projectId: "P-2025-0004",
+        customerName: "Hilltop Vineyards",
+        contactPerson: "Robert James",
+        email: "robert@hilltopvineyards.com",
+        phone: "555-987-6543",
+        address: "1200 Vineyard Road, Napa Valley, CA 94558",
+        serviceType: ServiceType.Wireless,
+        bandwidth: 200,
+        requirements: "Point-to-point wireless connection between main building and processing facility (2.5km apart). Weather-resistant equipment needed.",
+        assignedTo: team3.id,
+        expectedCompletion: new Date("2025-03-15"),
+        currentStage: ProjectStage.Installation,
+        isCompleted: false,
+        createdAt: new Date(now.getTime() - 21 * 24 * 60 * 60 * 1000), // 21 days ago
+        updatedAt: new Date(now.getTime() - 2 * 24 * 60 * 60 * 1000)   // 2 days ago
+      },
+      {
+        projectId: "P-2025-0005",
+        customerName: "City College of San Francisco",
+        contactPerson: "Maria Rodriguez",
+        email: "mrodriguez@ccsf.edu",
+        phone: "555-111-2222",
+        address: "50 Education Drive, San Francisco, CA 94112",
         serviceType: ServiceType.Fiber,
         bandwidth: 2000,
-        requirements: "HIPAA compliant connection for medical data transfer between facilities. Guaranteed uptime needed.",
-        assignedTo: teamMembersList.find(m => m.role === "Project Manager")?.id || teamMembersList[0].id,
-        expectedCompletion: "2025-03-15",
+        requirements: "Campus-wide fiber deployment connecting 5 buildings. Separate VLANs for staff, students, and administration.",
+        assignedTo: team2.id,
+        expectedCompletion: new Date("2025-02-28"),
         currentStage: ProjectStage.Handover,
-        isCompleted: true
+        isCompleted: true,
+        createdAt: new Date(now.getTime() - 45 * 24 * 60 * 60 * 1000), // 45 days ago
+        updatedAt: new Date(now.getTime() - 1 * 24 * 60 * 60 * 1000)   // 1 day ago
       }
     ];
     
-    for (const projectData of sampleProjects) {
-      // Insert project
-      const [project] = await db.insert(projects).values(projectData).returning();
-      
-      // Add project documents
-      await db.insert(projectDocuments).values([
-        {
-          projectId: project.id,
-          name: "Requirements Document",
-          type: "PDF",
-          url: `https://example.com/documents/${project.projectId}/requirements.pdf`,
-          description: "Initial customer requirements and specifications"
-        },
-        {
-          projectId: project.id,
-          name: "Site Survey Report",
-          type: "PDF",
-          url: `https://example.com/documents/${project.projectId}/site-survey.pdf`,
-          description: "Technical site survey and feasibility assessment"
-        },
-        {
-          projectId: project.id,
-          name: "Service Agreement",
-          type: "PDF",
-          url: `https://example.com/documents/${project.projectId}/agreement.pdf`,
-          description: "Signed service agreement and contract"
-        }
-      ]);
-      
-      // Add project tasks
-      await db.insert(tasks).values([
-        {
-          projectId: project.id,
-          title: "Initial Client Meeting",
-          description: "Schedule and conduct kickoff meeting with client",
-          assignedTo: project.assignedTo,
-          status: "completed",
-          stage: ProjectStage.Requirements,
-          dueDate: new Date(new Date().setDate(new Date().getDate() - 30))
-        },
-        {
-          projectId: project.id,
-          title: "Site Survey",
-          description: "Conduct technical site survey and assess feasibility",
-          assignedTo: teamMembersList.find(m => m.role === "Field Technician")?.id || teamMembersList[0].id,
-          status: project.currentStage >= ProjectStage.Survey ? "completed" : "pending",
-          stage: ProjectStage.Survey,
-          dueDate: new Date(new Date().setDate(new Date().getDate() - 15))
-        },
-        {
-          projectId: project.id,
-          title: "Prepare Proposal",
-          description: "Prepare detailed technical and commercial proposal",
-          assignedTo: teamMembersList.find(m => m.role === "Sales Representative")?.id || teamMembersList[0].id,
-          status: project.currentStage >= ProjectStage.Confirmation ? "completed" : "pending",
-          stage: ProjectStage.Confirmation,
-          dueDate: new Date(new Date().setDate(new Date().getDate() - 10))
-        },
-        {
-          projectId: project.id,
-          title: "Equipment Procurement",
-          description: "Order and verify delivery of all required equipment",
-          assignedTo: teamMembersList.find(m => m.role === "Project Manager")?.id || teamMembersList[0].id,
-          status: project.currentStage >= ProjectStage.Installation ? "completed" : "pending",
-          stage: ProjectStage.Installation,
-          dueDate: new Date(new Date().setDate(new Date().getDate() + 5))
-        },
-        {
-          projectId: project.id,
-          title: "Installation",
-          description: "Complete physical installation and connectivity",
-          assignedTo: teamMembersList.find(m => m.role === "Field Technician")?.id || teamMembersList[0].id,
-          status: project.currentStage >= ProjectStage.Installation ? "in-progress" : "pending",
-          dueDate: new Date(new Date().setDate(new Date().getDate() + 15))
-        },
-        {
-          projectId: project.id,
-          title: "Testing and Commissioning",
-          description: "Conduct bandwidth and performance testing",
-          assignedTo: teamMembersList.find(m => m.role === "Network Engineer")?.id || teamMembersList[0].id,
-          status: project.currentStage >= ProjectStage.Handover ? "completed" : "pending",
-          dueDate: new Date(new Date().setDate(new Date().getDate() + 20))
-        },
-        {
-          projectId: project.id,
-          title: "NOC Integration",
-          description: "Configure monitoring and alerts in NOC systems",
-          assignedTo: teamMembersList.find(m => m.role === "NOC Engineer")?.id || teamMembersList[0].id,
-          status: project.currentStage >= ProjectStage.Handover ? "completed" : "pending",
-          dueDate: new Date(new Date().setDate(new Date().getDate() + 25))
-        }
-      ]);
-      
-      // Add stage history
-      // Always have a requirements stage entry
-      await db.insert(projectStageHistory).values({
+    // Insert the projects
+    const insertedProjects = await db.insert(projects).values(projectsData).returning();
+    
+    // Create stage history entries for each project
+    console.log("Creating project stage history...");
+    const historyEntries = [];
+    
+    for (const project of insertedProjects) {
+      // All projects start at Requirements stage
+      historyEntries.push({
         projectId: project.id,
         stage: ProjectStage.Requirements,
-        notes: "Initial requirements gathered from customer",
-        changedBy: project.assignedTo
+        notes: "Project initialized with requirements",
+        changedBy: project.assignedTo,
+        timestamp: new Date(project.createdAt)
       });
       
-      // Add subsequent stage history based on current stage
+      // Add subsequent stage entries based on current stage
       if (project.currentStage >= ProjectStage.Survey) {
-        await db.insert(projectStageHistory).values({
+        const surveyDate = new Date(project.createdAt);
+        surveyDate.setDate(surveyDate.getDate() + 3);
+        historyEntries.push({
           projectId: project.id,
           stage: ProjectStage.Survey,
-          notes: "Site survey completed and feasibility confirmed",
-          changedBy: teamMembersList.find(m => m.role === "Field Technician")?.id || teamMembersList[0].id,
-          timestamp: new Date(new Date().setDate(new Date().getDate() - 20))
+          notes: "Site survey completed. Location verified for installation.",
+          changedBy: project.assignedTo,
+          timestamp: surveyDate
         });
       }
       
       if (project.currentStage >= ProjectStage.Confirmation) {
-        await db.insert(projectStageHistory).values({
+        const confirmDate = new Date(project.createdAt);
+        confirmDate.setDate(confirmDate.getDate() + 7);
+        historyEntries.push({
           projectId: project.id,
           stage: ProjectStage.Confirmation,
-          notes: "Customer has signed off on proposal and service agreement",
-          changedBy: teamMembersList.find(m => m.role === "Sales Representative")?.id || teamMembersList[0].id,
-          timestamp: new Date(new Date().setDate(new Date().getDate() - 15))
+          notes: "Customer confirmed project scope and costs.",
+          changedBy: project.assignedTo,
+          timestamp: confirmDate
         });
       }
       
       if (project.currentStage >= ProjectStage.Installation) {
-        await db.insert(projectStageHistory).values({
+        const installDate = new Date(project.createdAt);
+        installDate.setDate(installDate.getDate() + 14);
+        historyEntries.push({
           projectId: project.id,
           stage: ProjectStage.Installation,
-          notes: "Equipment installed and connectivity established",
-          changedBy: teamMembersList.find(m => m.role === "Field Technician")?.id || teamMembersList[0].id,
-          timestamp: new Date(new Date().setDate(new Date().getDate() - 5))
+          notes: "Equipment installed and initial testing completed.",
+          changedBy: project.assignedTo,
+          timestamp: installDate
         });
       }
       
       if (project.currentStage >= ProjectStage.Handover) {
-        await db.insert(projectStageHistory).values({
+        const handoverDate = new Date(project.createdAt);
+        handoverDate.setDate(handoverDate.getDate() + 21);
+        historyEntries.push({
           projectId: project.id,
           stage: ProjectStage.Handover,
-          notes: "Service tested and handed over to NOC for monitoring",
-          changedBy: teamMembersList.find(m => m.role === "NOC Engineer")?.id || teamMembersList[0].id,
-          timestamp: new Date(new Date().setDate(new Date().getDate() - 1))
+          notes: "Service activated and handed over to NOC for monitoring.",
+          changedBy: project.assignedTo,
+          timestamp: handoverDate
         });
       }
     }
+    
+    await db.insert(projectStageHistory).values(historyEntries);
+    
+    // Add sample documents for each project
+    console.log("Adding sample documents...");
+    const documentEntries = [];
+    
+    for (const project of insertedProjects) {
+      documentEntries.push({
+        projectId: project.id,
+        name: "Requirements Document",
+        type: "pdf",
+        url: "https://example.com/documents/requirements.pdf",
+        uploadedAt: new Date(project.createdAt)
+      });
+      
+      if (project.currentStage >= ProjectStage.Survey) {
+        documentEntries.push({
+          projectId: project.id,
+          name: "Site Survey Report",
+          type: "pdf",
+          url: "https://example.com/documents/survey_report.pdf",
+          uploadedAt: new Date(project.createdAt.getTime() + 3 * 24 * 60 * 60 * 1000)
+        });
+      }
+      
+      if (project.currentStage >= ProjectStage.Confirmation) {
+        documentEntries.push({
+          projectId: project.id,
+          name: "Service Agreement",
+          type: "pdf",
+          url: "https://example.com/documents/service_agreement.pdf",
+          uploadedAt: new Date(project.createdAt.getTime() + 7 * 24 * 60 * 60 * 1000)
+        });
+      }
+      
+      if (project.currentStage >= ProjectStage.Installation) {
+        documentEntries.push({
+          projectId: project.id,
+          name: "Network Topology",
+          type: "pdf",
+          url: "https://example.com/documents/network_topology.pdf",
+          uploadedAt: new Date(project.createdAt.getTime() + 14 * 24 * 60 * 60 * 1000)
+        });
+      }
+      
+      if (project.currentStage >= ProjectStage.Handover) {
+        documentEntries.push({
+          projectId: project.id,
+          name: "Service Handover Certificate",
+          type: "pdf",
+          url: "https://example.com/documents/handover_certificate.pdf",
+          uploadedAt: new Date(project.createdAt.getTime() + 21 * 24 * 60 * 60 * 1000)
+        });
+      }
+    }
+    
+    await db.insert(projectDocuments).values(documentEntries);
+    
+    // Add sample tasks for each project
+    console.log("Creating sample tasks...");
+    const taskEntries = [];
+    
+    for (const project of insertedProjects) {
+      if (project.currentStage === ProjectStage.Requirements) {
+        taskEntries.push({
+          projectId: project.id,
+          title: "Collect network diagrams",
+          description: "Get network diagrams and requirements from the customer",
+          assignedTo: project.assignedTo,
+          stage: ProjectStage.Requirements,
+          isCompleted: false,
+          dueDate: new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000), // Due in 7 days
+          createdAt: now
+        });
+      }
+      
+      if (project.currentStage === ProjectStage.Survey) {
+        taskEntries.push({
+          projectId: project.id,
+          title: "Site survey",
+          description: "Complete site survey and document findings",
+          assignedTo: team3.id, // Field Technician
+          stage: ProjectStage.Survey,
+          isCompleted: false,
+          dueDate: new Date(now.getTime() + 5 * 24 * 60 * 60 * 1000), // Due in 5 days
+          createdAt: now
+        });
+      }
+      
+      if (project.currentStage === ProjectStage.Installation) {
+        taskEntries.push({
+          projectId: project.id,
+          title: "Equipment installation",
+          description: "Install all networking equipment according to plan",
+          assignedTo: team3.id, // Field Technician
+          stage: ProjectStage.Installation,
+          isCompleted: false,
+          dueDate: new Date(now.getTime() + 3 * 24 * 60 * 60 * 1000), // Due in 3 days
+          createdAt: now
+        });
+        
+        taskEntries.push({
+          projectId: project.id,
+          title: "Network configuration",
+          description: "Configure all network devices and test connectivity",
+          assignedTo: team2.id, // Network Engineer
+          stage: ProjectStage.Installation,
+          isCompleted: false,
+          dueDate: new Date(now.getTime() + 4 * 24 * 60 * 60 * 1000), // Due in 4 days
+          createdAt: now
+        });
+      }
+      
+      if (project.currentStage === ProjectStage.Handover) {
+        taskEntries.push({
+          projectId: project.id,
+          title: "Schedule final verification",
+          description: "Conduct final verification of all equipment and connections",
+          assignedTo: team5.id, // NOC Engineer
+          stage: ProjectStage.Handover,
+          isCompleted: true,
+          dueDate: new Date(project.updatedAt),
+          createdAt: new Date(project.updatedAt.getTime() - 7 * 24 * 60 * 60 * 1000)
+        });
+      }
+    }
+    
+    await db.insert(tasks).values(taskEntries);
+    
+    console.log("Database seeding completed successfully!");
+    
+  } catch (error) {
+    console.error("Error seeding database:", error);
   }
-  
-  console.log("Database seeding completed!");
 }
 
 // Run the seed function
-seedDatabase()
-  .then(() => {
-    console.log("Seed script completed successfully");
-    process.exit(0);
-  })
-  .catch((error) => {
-    console.error("Error seeding database:", error);
-    process.exit(1);
-  });
+seedDatabase().then(() => {
+  console.log("Script completed");
+  process.exit(0);
+}).catch(error => {
+  console.error("Script failed:", error);
+  process.exit(1);
+});
