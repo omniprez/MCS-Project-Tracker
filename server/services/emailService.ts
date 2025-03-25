@@ -16,6 +16,14 @@ if (SENDGRID_API_KEY) {
   console.warn('SendGrid API key not provided, email notifications will be disabled');
 }
 
+// Define SendGrid-specific error type for better error handling
+interface SendGridError extends Error {
+  response?: {
+    body?: any;
+    statusCode?: number;
+  };
+}
+
 // Create email templates directory if it doesn't exist
 // Using import.meta.url instead of __dirname for ES modules
 import { fileURLToPath } from 'url';
@@ -282,7 +290,7 @@ export async function sendProjectUpdateNotification(
       await sgMail.send(msg);
       console.log(`Project update notification sent to ${recipient.email}`);
     }
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error sending project update notification:', error);
     if (error.response) {
       console.error('SendGrid API error:', error.response.body);
