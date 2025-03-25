@@ -211,8 +211,17 @@ export async function sendNewProjectNotification(project: Project): Promise<void
         html: htmlContent,
       };
       
-      await sgMail.send(msg);
-      console.log(`New project notification sent to ${recipient.email}`);
+      try {
+        const response = await sgMail.send(msg);
+        console.log(`New project notification sent to ${recipient.email}`);
+        console.log(`SendGrid response status code: ${response[0].statusCode}`);
+        console.log(`SendGrid response headers: ${JSON.stringify(response[0].headers)}`);
+      } catch (sendErr: any) {
+        console.error(`Failed to send email to ${recipient.email}:`, sendErr);
+        if (sendErr.response) {
+          console.error(`SendGrid API error details: ${JSON.stringify(sendErr.response.body)}`);
+        }
+      }
     }
   } catch (error: any) {
     console.error('Error sending new project notification:', error);
@@ -287,8 +296,17 @@ export async function sendProjectUpdateNotification(
         html: htmlContent,
       };
       
-      await sgMail.send(msg);
-      console.log(`Project update notification sent to ${recipient.email}`);
+      try {
+        const response = await sgMail.send(msg);
+        console.log(`Project update notification sent to ${recipient.email}`);
+        console.log(`SendGrid response status code: ${response[0].statusCode}`);
+        console.log(`SendGrid response headers: ${JSON.stringify(response[0].headers)}`);
+      } catch (sendErr: any) {
+        console.error(`Failed to send email to ${recipient.email}:`, sendErr);
+        if (sendErr.response) {
+          console.error(`SendGrid API error details: ${JSON.stringify(sendErr.response.body)}`);
+        }
+      }
     }
   } catch (error: any) {
     console.error('Error sending project update notification:', error);
