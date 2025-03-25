@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card";
@@ -11,6 +11,7 @@ import { AlertCircle } from "lucide-react";
 import { useLocation } from "wouter";
 import { apiRequest } from "@/lib/queryClient";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/contexts/AuthContext";
 
 const LoginSchema = z.object({
   username: z.string().min(1, { message: "Username is required" }),
@@ -24,6 +25,14 @@ export default function Login() {
   const [error, setError] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(false);
   const { toast } = useToast();
+  const { user, refetchUser } = useAuth();
+  
+  // If user is already logged in, redirect to dashboard
+  useEffect(() => {
+    if (user) {
+      setLocation("/");
+    }
+  }, [user, setLocation]);
 
   const form = useForm<LoginValues>({
     resolver: zodResolver(LoginSchema),
@@ -51,7 +60,12 @@ export default function Login() {
           title: "Login Successful",
           description: "Welcome back to ISP Project Tracker!",
         });
-        setLocation("/"); // Redirect to dashboard
+        
+        // Refetch the user data to update auth context
+        await refetchUser();
+        
+        // Redirect to dashboard
+        setLocation("/");
       } else {
         const data = await response.json();
         setError(data.message || "Login failed. Please check your credentials.");
