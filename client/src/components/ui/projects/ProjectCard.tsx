@@ -1,8 +1,8 @@
 import { Project, ProjectStage, ServiceType } from "@shared/schema";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Edit, PaperclipIcon, Wifi, Network, ArrowRight, AlertCircle, FileText, File, Download } from "lucide-react";
-import { useState } from "react";
+import { Edit, PaperclipIcon, Wifi, Network, ArrowRight, AlertCircle, FileText, File, Download, Upload } from "lucide-react";
+import { useState, useRef } from "react";
 import { format } from "date-fns";
 import { useQuery, useMutation, useQueryClient, QueryClient } from "@tanstack/react-query";
 import { getStageInfo, getStagePercentage } from "@/lib/stageUtils";
@@ -36,6 +36,8 @@ export default function ProjectCard({ project }: ProjectCardProps) {
   const [showAdvanceStageDialog, setShowAdvanceStageDialog] = useState(false);
   const [showUpdateDialog, setShowUpdateDialog] = useState(false);
   const [stageNotes, setStageNotes] = useState("");
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const queryClient = useQueryClient();
   
@@ -138,6 +140,49 @@ export default function ProjectCard({ project }: ProjectCardProps) {
     queryKey: [`/api/projects/${project.id}/documents`],
     enabled: showDocuments,
   });
+  
+  // Upload document mutation
+  const uploadDocumentMutation = useMutation({
+    mutationFn: async (file: File) => {
+      setIsUploading(true);
+      const formData = new FormData();
+      formData.append('file', file);
+      
+      const response = await fetch(`/api/projects/${project.id}/documents`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      if (!response.ok) {
+        throw new Error('Failed to upload document');
+      }
+      
+      return response.json();
+    },
+    onSuccess: () => {
+      toast({
+        title: "Document uploaded",
+        description: "Document has been uploaded successfully",
+      });
+      queryClient.invalidateQueries({ queryKey: [`/api/projects/${project.id}/documents`] });
+      setIsUploading(false);
+    },
+    onError: (error) => {
+      toast({
+        title: "Error",
+        description: `Failed to upload document: ${error.message}`,
+        variant: "destructive",
+      });
+      setIsUploading(false);
+    }
+  });
+  
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      uploadDocumentMutation.mutate(file);
+    }
+  };
   
   return (
     <>
