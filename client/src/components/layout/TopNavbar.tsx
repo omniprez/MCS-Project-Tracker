@@ -1,4 +1,4 @@
-import { Menu, Bell, LogOut } from "lucide-react";
+import { Menu, Bell } from "lucide-react";
 import { Button } from "@/components/ui/button";
 
 interface TopNavbarProps {
@@ -28,10 +28,10 @@ export default function TopNavbar({ onMenuClick }: TopNavbarProps) {
         <div className="ml-4 flex items-center md:ml-6">
           <button 
             type="button" 
-            className="rounded-full p-1 text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-white"
+            className="px-2 py-1 rounded text-white hover:bg-indigo-700 focus:outline-none focus:ring-2 focus:ring-white text-sm font-medium"
             onClick={handleLogout}
           >
-            <LogOut className="h-6 w-6" />
+            Logout
           </button>
           <div className="relative ml-3">
             <div>
