@@ -17,11 +17,20 @@ import {
   tasks,
   type Task,
   type InsertTask,
+  teamMemberBadges,
+  type TeamMemberBadge,
+  type InsertTeamMemberBadge,
+  performanceMetrics,
+  type PerformanceMetric,
+  type InsertPerformanceMetric,
+  monthlyTeamPerformance,
+  type MonthlyTeamPerformance,
+  type InsertMonthlyTeamPerformance,
   ProjectStage,
   ServiceType
 } from "@shared/schema";
 import { db } from "./db";
-import { eq, or, sql } from "drizzle-orm";
+import { eq, or, sql, and } from "drizzle-orm";
 
 export interface IStorage {
   // User methods
@@ -83,6 +92,9 @@ export class MemStorage implements IStorage {
   private documents: Map<number, ProjectDocument>;
   private stageHistory: Map<number, ProjectStageHistory>;
   private tasks: Map<number, Task>;
+  private badges: Map<number, TeamMemberBadge>;
+  private performanceMetrics: Map<number, PerformanceMetric>;
+  private monthlyPerformance: Map<string, MonthlyTeamPerformance>;
   
   private userId: number;
   private projectId: number;
@@ -90,6 +102,9 @@ export class MemStorage implements IStorage {
   private documentId: number;
   private stageHistoryId: number;
   private taskId: number;
+  private badgeId: number;
+  private metricId: number;
+  private monthlyPerformanceId: number;
   
   constructor() {
     this.users = new Map();
@@ -98,6 +113,9 @@ export class MemStorage implements IStorage {
     this.documents = new Map();
     this.stageHistory = new Map();
     this.tasks = new Map();
+    this.badges = new Map();
+    this.performanceMetrics = new Map();
+    this.monthlyPerformance = new Map();
     
     this.userId = 1;
     this.projectId = 1;
@@ -105,6 +123,9 @@ export class MemStorage implements IStorage {
     this.documentId = 1;
     this.stageHistoryId = 1;
     this.taskId = 1;
+    this.badgeId = 1;
+    this.metricId = 1;
+    this.monthlyPerformanceId = 1;
     
     // Initialize with some team members
     this.initializeTeamMembers();
@@ -648,6 +669,99 @@ export class MemStorage implements IStorage {
     
     this.tasks.set(id, updatedTask);
     return updatedTask;
+  }
+  
+  // Badge methods
+  async getTeamMemberBadges(teamMemberId: number): Promise<TeamMemberBadge[]> {
+    return Array.from(this.badges.values()).filter(
+      badge => badge.teamMemberId === teamMemberId
+    );
+  }
+  
+  async awardBadge(badge: InsertTeamMemberBadge): Promise<TeamMemberBadge> {
+    const id = this.badgeId++;
+    const newBadge: TeamMemberBadge = {
+      ...badge,
+      id,
+      awardedAt: new Date()
+    };
+    this.badges.set(id, newBadge);
+    return newBadge;
+  }
+  
+  // Performance metrics methods
+  async getTeamMemberPerformance(teamMemberId: number): Promise<PerformanceMetric | undefined> {
+    return Array.from(this.performanceMetrics.values()).find(
+      metric => metric.teamMemberId === teamMemberId
+    );
+  }
+  
+  async updateTeamMemberPerformance(teamMemberId: number, metrics: Partial<PerformanceMetric>): Promise<PerformanceMetric> {
+    const existingMetric = await this.getTeamMemberPerformance(teamMemberId);
+    
+    if (existingMetric) {
+      // Update existing record
+      const updatedMetric: PerformanceMetric = {
+        ...existingMetric,
+        ...metrics,
+        updatedAt: new Date()
+      };
+      this.performanceMetrics.set(existingMetric.id, updatedMetric);
+      return updatedMetric;
+    } else {
+      // Create new record
+      const id = this.metricId++;
+      const newMetric: PerformanceMetric = {
+        id,
+        teamMemberId,
+        projectsCompleted: metrics.projectsCompleted || 0,
+        avgCompletionTime: metrics.avgCompletionTime || 0,
+        customerSatisfactionScore: metrics.customerSatisfactionScore || 0,
+        updatedAt: new Date()
+      };
+      this.performanceMetrics.set(id, newMetric);
+      return newMetric;
+    }
+  }
+  
+  // Team performance methods
+  async getMonthlyTeamPerformance(month: number, year: number): Promise<MonthlyTeamPerformance | undefined> {
+    const key = `${year}-${month}`;
+    return this.monthlyPerformance.get(key);
+  }
+  
+  async updateMonthlyTeamPerformance(month: number, year: number, data: Partial<MonthlyTeamPerformance>): Promise<MonthlyTeamPerformance> {
+    const key = `${year}-${month}`;
+    const existingPerformance = this.monthlyPerformance.get(key);
+    
+    if (existingPerformance) {
+      // Update existing record
+      const updatedPerformance: MonthlyTeamPerformance = {
+        ...existingPerformance,
+        ...data
+      };
+      this.monthlyPerformance.set(key, updatedPerformance);
+      return updatedPerformance;
+    } else {
+      // Create new record
+      const id = this.monthlyPerformanceId++;
+      const newPerformance: MonthlyTeamPerformance = {
+        id,
+        month,
+        year,
+        avgProjectCompletionTime: data.avgProjectCompletionTime || 0,
+        projectsCompleted: data.projectsCompleted || 0,
+        customerSatisfactionAvg: data.customerSatisfactionAvg || 0
+      };
+      this.monthlyPerformance.set(key, newPerformance);
+      return newPerformance;
+    }
+  }
+  
+  async getAllMonthlyTeamPerformance(year: number): Promise<MonthlyTeamPerformance[]> {
+    return Array.from(this.monthlyPerformance.values())
+      .filter(performance => performance.year === year)
+      .sort((a, b) => a.month - b.month);
   }
   
   // Dashboard stats
