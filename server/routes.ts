@@ -1,4 +1,4 @@
-import type { Express, Request, Response } from "express";
+import type { Express, Request, Response, NextFunction } from "express";
 import { createServer, type Server } from "http";
 import { storage } from "./storage";
 import { 
@@ -7,9 +7,13 @@ import {
   insertProjectStageHistorySchema,
   insertTeamMemberSchema,
   insertProjectDocumentSchema,
+  insertUserSchema,
+  loginUserSchema,
   ProjectStage,
   ServiceType
 } from "@shared/schema";
+import passport from "passport";
+import { isAuthenticated, hashPassword, isUsernameAvailable } from "./auth";
 import { z } from "zod";
 import multer from "multer";
 import path from "path";
@@ -37,6 +41,94 @@ const storage_config = multer.diskStorage({
 const upload = multer({ storage: storage_config });
 
 export async function registerRoutes(app: Express): Promise<Server> {
+  // Authentication routes
+  
+  // Register a new user
+  app.post("/api/auth/register", async (req: Request, res: Response) => {
+    try {
+      const userData = insertUserSchema.parse(req.body);
+      
+      // Check if username is available
+      const isAvailable = await isUsernameAvailable(userData.username);
+      if (!isAvailable) {
+        return res.status(400).json({ message: "Username already taken" });
+      }
+      
+      // Hash password
+      const hashedPassword = await hashPassword(userData.password);
+      
+      // Create user with hashed password
+      const newUser = await storage.createUser({
+        ...userData,
+        password: hashedPassword
+      });
+      
+      // Remove password from response
+      const { password, ...userWithoutPassword } = newUser;
+      
+      res.status(201).json(userWithoutPassword);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid user data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Error creating user" });
+    }
+  });
+  
+  // Login
+  app.post("/api/auth/login", (req: Request, res: Response, next: NextFunction) => {
+    try {
+      // Validate login data
+      const loginData = loginUserSchema.parse(req.body);
+      
+      passport.authenticate("local", (err: any, user: any, info: any) => {
+        if (err) {
+          return next(err);
+        }
+        
+        if (!user) {
+          return res.status(401).json({ message: info.message || "Authentication failed" });
+        }
+        
+        req.logIn(user, (err) => {
+          if (err) {
+            return next(err);
+          }
+          
+          // Remove password from response
+          const { password, ...userWithoutPassword } = user;
+          
+          return res.json({
+            message: "Login successful",
+            user: userWithoutPassword
+          });
+        });
+      })(req, res, next);
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        return res.status(400).json({ message: "Invalid login data", errors: error.errors });
+      }
+      res.status(500).json({ message: "Error during login" });
+    }
+  });
+  
+  // Logout
+  app.post("/api/auth/logout", (req: Request, res: Response) => {
+    req.logout((err) => {
+      if (err) {
+        return res.status(500).json({ message: "Error during logout" });
+      }
+      res.json({ message: "Logout successful" });
+    });
+  });
+  
+  // Get current user
+  app.get("/api/auth/me", isAuthenticated, (req: Request, res: Response) => {
+    // Remove password from response
+    const { password, ...userWithoutPassword } = req.user as any;
+    res.json(userWithoutPassword);
+  });
+  
   // API routes
   
   // Get all projects
