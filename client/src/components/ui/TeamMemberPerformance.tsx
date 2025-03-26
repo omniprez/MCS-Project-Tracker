@@ -85,11 +85,11 @@ export function TeamMemberPerformance({ teamMemberId, isEditable = false }: Team
   const COLORS = ["#4ade80", "#f87171"];
 
   const calculateEfficiencyScore = () => {
-    // Calculate efficiency based on avg_completion_time (lower is better)
+    // Calculate efficiency based on avgCompletionTime (lower is better)
     // Scale inversely - 15 days or more = 0%, 5 days or less = 100%
     const maxTime = 15;
     const minTime = 5;
-    const time = performance.avg_completion_time || 0;
+    const time = performance.avgCompletionTime || 0;
     
     if (time >= maxTime) return 0;
     if (time <= minTime) return 100;
@@ -99,7 +99,7 @@ export function TeamMemberPerformance({ teamMemberId, isEditable = false }: Team
 
   const calculateCustomerScore = () => {
     // Scale 0-10 score to percentage
-    return Math.round((performance.customer_satisfaction_score || 0) * 10);
+    return Math.round((performance.customerSatisfactionScore || 0) * 10);
   };
 
   return (
