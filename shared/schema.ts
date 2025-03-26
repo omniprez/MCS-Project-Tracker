@@ -157,7 +157,7 @@ export const monthlyTeamPerformance = pgTable("monthly_team_performance", {
   month: integer("month").notNull(),
   year: integer("year").notNull(),
   projectsCompleted: integer("projects_completed").notNull().default(0),
-  avgCompletionTime: decimal("avg_project_completion_time", { precision: 10, scale: 2 }).default("0"), // in days
+  avgProjectCompletionTime: decimal("avg_project_completion_time", { precision: 10, scale: 2 }).default("0"), // in days
   customerSatisfactionAvg: decimal("customer_satisfaction_avg", { precision: 3, scale: 2 }).default("0"), // 1-10 rating
 });
 

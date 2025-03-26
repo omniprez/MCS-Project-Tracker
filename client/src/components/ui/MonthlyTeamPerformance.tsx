@@ -50,12 +50,8 @@ export function MonthlyTeamPerformanceChart() {
       // Try to find actual data for this month from our API response
       const monthData = performanceData?.find(item => {
         // Handle date format in month field
-        if (typeof item.month === 'string') {
-          // If month is a date string like "2023-01-01", extract the month part
-          const monthDate = new Date(item.month);
-          return !isNaN(monthDate.getTime()) && (monthDate.getMonth() + 1) === monthNum;
-        }
-        return false; // We expect month to be a string in our DB schema
+        // Month is stored as an integer in our schema
+      return item.month === monthNum;
       });
 
       // Default values if we don't have data for this month
@@ -63,7 +59,7 @@ export function MonthlyTeamPerformanceChart() {
         month: monthNum,
         year: parseInt(selectedYear),
         projectsCompleted: 0,
-        avgCompletionTime: 0,
+        avgProjectCompletionTime: 0,
         customerSatisfactionAvg: 0
       };
       
@@ -80,7 +76,7 @@ export function MonthlyTeamPerformanceChart() {
         // Map database fields to chart fields
         totalProjects: estimatedTotalProjects,
         completedProjects: mergedData.projectsCompleted,
-        avgProjectCompletionTime: Number(mergedData.avgCompletionTime) || 0,
+        avgProjectCompletionTime: Number(mergedData.avgProjectCompletionTime) || 0,
         newCustomers: Math.round(estimatedTotalProjects * 0.7), // Estimate new customers as 70% of projects
         teamEfficiency: Number(mergedData.customerSatisfactionAvg) || 0,
         // Calculate completion rate
