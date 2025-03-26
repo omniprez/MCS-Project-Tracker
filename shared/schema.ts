@@ -144,7 +144,6 @@ export const performanceMetrics = pgTable("performance_metrics", {
   id: serial("id").primaryKey(),
   teamMemberId: integer("team_member_id").notNull(),
   projectsCompleted: integer("projects_completed").notNull().default(0),
-  tasksCompleted: integer("tasks_completed").notNull().default(0),
   avgCompletionTime: integer("avg_completion_time"), // in days
   onTimeDeliveryRate: integer("on_time_delivery_rate"), // percentage
   customerSatisfactionScore: integer("customer_satisfaction_score"), // 1-10 rating
