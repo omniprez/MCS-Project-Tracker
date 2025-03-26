@@ -108,15 +108,13 @@ export function MonthlyTeamPerformanceChart() {
     if (error) {
       console.error("Error loading performance data:", error);
     }
-    console.log("Performance data received:", performanceData);
+    if (performanceData) {
+      console.log("Performance data received:", performanceData);
+    }
   }, [performanceData, error]);
   
   // Instead of showing an error, we'll just show the empty data visualization
   // This is because we might not have any performance data yet, which isn't really an error
-  if (error) {
-    console.error("Error loading performance data:", error);
-    // We'll continue with the empty data we generated in processedData
-  }
 
   return (
     <Card className="w-full">
