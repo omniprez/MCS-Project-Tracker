@@ -26,10 +26,11 @@ export function TeamMemberPerformance({ teamMemberId, isEditable = false }: Team
 
   const updateMutation = useMutation({
     mutationFn: async (updatedMetric: Partial<PerformanceMetric>) => {
-      return await apiRequest(`/api/team-members/${teamMemberId}/performance`, {
-        method: "PUT",
-        body: JSON.stringify(updatedMetric),
-      });
+      return await apiRequest(
+        `/api/team-members/${teamMemberId}/performance`, 
+        'PUT',
+        updatedMetric
+      );
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['/api/team-members', teamMemberId, 'performance'] });
