@@ -1037,9 +1037,7 @@ export class DatabaseStorage implements IStorage {
       const [updatedMetric] = await db
         .update(performanceMetrics)
         .set({
-          projectsCompleted: metrics.projectsCompleted !== undefined ? metrics.projectsCompleted : existingMetric.projectsCompleted,
-          avgCompletionTime: metrics.avgCompletionTime !== undefined ? metrics.avgCompletionTime : existingMetric.avgCompletionTime,
-          customerSatisfactionScore: metrics.customerSatisfactionScore !== undefined ? metrics.customerSatisfactionScore : existingMetric.customerSatisfactionScore,
+          ...metrics,
           updatedAt: new Date()
         })
         .where(eq(performanceMetrics.id, existingMetric.id))
