@@ -41,6 +41,16 @@ export function MonthlyTeamPerformanceChart() {
   });
 
   // Create data for the year that matches our schema
+  // Add some console logging to help us debug
+  React.useEffect(() => {
+    if (error) {
+      console.error("Error loading performance data:", error);
+    }
+    if (performanceData) {
+      console.log("Performance data received:", performanceData);
+    }
+  }, [performanceData, error]);
+
   const processedData = React.useMemo(() => {
     // Create array with all 12 months regardless of whether we have data
     const allMonths = Array.from({ length: 12 }, (_, i) => {
@@ -102,16 +112,6 @@ export function MonthlyTeamPerformanceChart() {
       </Card>
     );
   }
-
-  // Add some console logging to help us debug
-  React.useEffect(() => {
-    if (error) {
-      console.error("Error loading performance data:", error);
-    }
-    if (performanceData) {
-      console.log("Performance data received:", performanceData);
-    }
-  }, [performanceData, error]);
   
   // Instead of showing an error, we'll just show the empty data visualization
   // This is because we might not have any performance data yet, which isn't really an error
