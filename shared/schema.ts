@@ -1,4 +1,4 @@
-import { pgTable, text, serial, integer, boolean, timestamp, json, date } from "drizzle-orm/pg-core";
+import { pgTable, text, serial, integer, boolean, timestamp, json, date, decimal } from "drizzle-orm/pg-core";
 import { createInsertSchema } from "drizzle-zod";
 import { z } from "zod";
 
@@ -154,13 +154,11 @@ export const performanceMetrics = pgTable("performance_metrics", {
 // Monthly team performance schema
 export const monthlyTeamPerformance = pgTable("monthly_team_performance", {
   id: serial("id").primaryKey(), 
-  month: date("month").notNull(),
+  month: integer("month").notNull(),
   year: integer("year").notNull(),
-  projectsStarted: integer("projects_started").notNull().default(0),
   projectsCompleted: integer("projects_completed").notNull().default(0),
-  avgCompletionTime: integer("avg_completion_time"), // in days
-  customerSatisfactionAvg: integer("customer_satisfaction_avg"), // 1-10 rating
-  teamMemberCount: integer("team_member_count").notNull().default(0),
+  avgCompletionTime: decimal("avg_project_completion_time", { precision: 10, scale: 2 }).default("0"), // in days
+  customerSatisfactionAvg: decimal("customer_satisfaction_avg", { precision: 3, scale: 2 }).default("0"), // 1-10 rating
 });
 
 // Insert schemas
